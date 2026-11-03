@@ -1,0 +1,52 @@
+16:45 fcfusion 01 start
+16:47 fcfusion 01 end rc=0
+16:47 fcfusion 02 already done
+16:47 fcfusion 03 already done
+16:47 fcfusion 04 start
+16:48 fcfusion 04 end rc=0
+16:48 fcfusion 05 already done
+16:48 fcfusion 06 already done
+16:48 fcfusion 07 start
+16:54 fcfusion 07 end rc=0
+16:54 fcfusion 08 start
+16:56 fcfusion 08 end rc=0
+16:56 fcfusion 09 start
+16:57 fcfusion 09 end rc=0
+16:57 fcfusion 10 start
+16:58 fcfusion 10 end rc=0
+16:58 fcfusion 11 start
+17:11 fcfusion 11 end rc=0
+17:11 fcfusion 12 start
+17:14 fcfusion 12 end rc=0
+17:14 fcfusion 13 start
+17:14 fcfusion 13 end rc=0
+17:14 fcfusion 14 start
+17:19 fcfusion 14 end rc=0
+17:19 fcfusion 15 start
+17:20 fcfusion 15 end rc=0
+17:20 fcfusion 16 start
+17:21 fcfusion 16 end rc=0
+17:21 fcfusion 17 start
+17:23 fcfusion 17 end rc=0
+17:23 fcfusion 18 start
+17:24 fcfusion 18 end rc=0
+17:24 fcfusion 19 start
+17:33 fcfusion 19 end rc=0
+17:33 fcfusion 20 start
+17:38 fcfusion 20 end rc=0
+17:38 brilliance 01 start
+17:58 brilliance 01 end rc=0
+17:58 brilliance 02 start
+18:35 brilliance 02 end rc=0
+18:35 brilliance 03 start
+19:19 brilliance 03 continue 1 (rc=1)
+19:41 brilliance stopped by user during 03
+19:41 qwenpi 01 start
+20:08 qwenpi 01 aborted (requests timed out behind an orphaned Brilliance request), restarting
+20:08 qwenpi 01 start
+20:17 server restarted (router deadlock), qwenpi restarting from 01
+20:17 qwenpi 01 start
+20:25 qwenpi 01 end rc=0
+20:25 qwenpi 02 start
+20:39 qwenpi 02 end rc=0
+20:39 qwenpi 03 start
