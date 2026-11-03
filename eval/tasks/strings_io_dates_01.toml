@@ -1,0 +1,26 @@
+id = "strings_io_dates_01"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+`first_n` throws `StringIndexError` on non-ASCII input such as `first_n("héllo", 2)`. Fix it so it counts characters, not bytes, accepts any `AbstractString` (including `SubString`), and returns the whole string when `n` exceeds its length.
+
+```julia
+first_n(s::String, n::Int) = s[1:min(n, length(s))]
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test first_n("héllo wörld", 3) == "hél"
+@test first_n("日本語テキスト", 2) == "日本"
+@test first_n("abc", 10) == "abc"
+@test first_n("", 3) == ""
+@test first_n(SubString("héllo", 1, 4), 2) == "hé"
+@test first_n("héllo", 0) == ""
+'''
+reference = '''
+first_n(s::AbstractString, n::Integer) = first(s, n)
+'''
+negative = '''
+first_n(s::String, n::Int) = s[1:min(n, length(s))]
+'''

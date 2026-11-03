@@ -1,0 +1,37 @@
+id = "metaprogramming_05"
+area = "metaprogramming"
+deps = []
+prompt = '''
+Write `replace_symbol(ex, from::Symbol, to::Symbol)` that returns a new expression in which every occurrence of the symbol `from` is replaced by `to`, recursing through nested `Expr`s. It must not mutate its input, must leave non-symbol leaves (numbers, strings, `QuoteNode`s such as the field name in `x.a`) alone, and works when `ex` itself is a `Symbol` or a literal.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+ex = :(a + b * a)
+orig = deepcopy(ex)
+@test replace_symbol(ex, :a, :z) == :(z + b * z)
+@test ex == orig
+@test replace_symbol(:(f(a, [a, 1], x -> a)), :a, :q) == :(f(q, [q, 1], x -> q))
+@test replace_symbol(:a, :a, :b) === :b
+@test replace_symbol(5, :a, :b) === 5
+@test replace_symbol("a", :a, :b) == "a"
+@test replace_symbol(:(x.a), :a, :z) == :(x.a)
+@test replace_symbol(:(a.b), :a, :z) == :(z.b)
+'''
+reference = '''
+replace_symbol(ex::Symbol, from::Symbol, to::Symbol) = ex === from ? to : ex
+replace_symbol(ex::Expr, from::Symbol, to::Symbol) =
+    Expr(ex.head, (replace_symbol(a, from, to) for a in ex.args)...)
+replace_symbol(ex, from::Symbol, to::Symbol) = ex
+'''
+negative = '''
+function replace_symbol(ex, from::Symbol, to::Symbol)
+    if ex isa Expr
+        for i in eachindex(ex.args)
+            ex.args[i] === from && (ex.args[i] = to)
+        end
+        return ex
+    end
+    return ex === from ? to : ex
+end
+'''

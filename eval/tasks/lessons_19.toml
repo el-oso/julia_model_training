@@ -1,0 +1,38 @@
+id = "lessons_19"
+area = "lessons"
+deps = []
+prompt = '''
+Write `cached(f)` returning a function that calls `f(args...)` and caches the result per distinct argument list in a `Dict`. Arguments that are `isequal` but of different types must not share an entry: with `c = cached(x -> x * x)`, `c(2) === 4` and `c(2.0) === 4.0` in either call order.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+n = Ref(0)
+c = cached(x -> (n[] += 1; x * x))
+@test c(2) === 4
+@test c(2.0) === 4.0
+@test c(2) === 4
+@test n[] == 2
+c2 = cached(x -> x * x)
+@test c2(2.0) === 4.0
+@test c2(2) === 4
+d = cached((a, b) -> a + b)
+@test d(1, 2) === 3 && d(1, 2.0) === 3.0
+'''
+reference = '''
+function cached(f)
+    cache = Dict{Any,Any}()
+    return function (args...)
+        key = (map(typeof, args), args)
+        get!(() -> f(args...), cache, key)
+    end
+end
+'''
+negative = '''
+function cached(f)
+    cache = Dict{Any,Any}()
+    return function (args...)
+        get!(() -> f(args...), cache, args)
+    end
+end
+'''

@@ -1,0 +1,36 @@
+id = "trim_08"
+area = "trim"
+deps = []
+prompt = '''
+`calc` uses `eval` at run time, which cannot be compiled with `juliac --trim=safe`. Rewrite it with explicit branches for `:+`, `:-` and `:*`, returning `Int`. Any other operator must throw `ArgumentError` with the message `unsupported operator <op>` (for example `unsupported operator ^`). The return type must be inferred as `Int` with no dynamic dispatch.
+
+```julia
+function calc(a::Int, op::Symbol, b::Int)
+    return eval(Expr(:call, op, a, b))
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test calc(2, :+, 3) === 5
+@test calc(2, :-, 3) === -1
+@test calc(4, :*, 3) === 12
+@test_throws "unsupported operator ^" calc(1, :^, 2)
+@test_throws ArgumentError calc(1, :/, 2)
+@test rtype(calc, (Int, Symbol, Int)) === Int
+@test isempty(dynamic_calls(calc, (Int, Symbol, Int)))
+'''
+reference = '''
+function calc(a::Int, op::Symbol, b::Int)
+    op === :+ && return a + b
+    op === :- && return a - b
+    op === :* && return a * b
+    throw(ArgumentError("unsupported operator $op"))
+end
+'''
+negative = '''
+function calc(a::Int, op::Symbol, b::Int)
+    return eval(Expr(:call, op, a, b))
+end
+'''

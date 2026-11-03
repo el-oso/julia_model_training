@@ -1,0 +1,153 @@
+id = "lessons_04"
+area = "lessons"
+deps = []
+prompt = '''
+Below is a fixed-capacity binary min-heap of `(priority, key)` tuples; `heappush!` throws a `BoundsError` when the heap is full.
+
+```julia
+mutable struct FixedHeap
+    data::Vector{Tuple{Float64,Int}}
+    n::Int
+end
+FixedHeap(cap) = FixedHeap(Vector{Tuple{Float64,Int}}(undef, cap), 0)
+
+function heappush!(h::FixedHeap, x)
+    h.n += 1
+    i = h.n
+    h.data[i] = x
+    while i > 1 && h.data[i] < h.data[i >> 1]
+        h.data[i], h.data[i >> 1] = h.data[i >> 1], h.data[i]
+        i >>= 1
+    end
+end
+
+function heappop!(h::FixedHeap)
+    top = h.data[1]
+    h.data[1] = h.data[h.n]
+    h.n -= 1
+    i = 1
+    while true
+        l, r, m = 2i, 2i + 1, i
+        l <= h.n && h.data[l] < h.data[m] && (m = l)
+        r <= h.n && h.data[r] < h.data[m] && (m = r)
+        m == i && break
+        h.data[i], h.data[m] = h.data[m], h.data[i]
+        i = m
+    end
+    return top
+end
+```
+
+Write `final_order(updates)` for a vector of `(key::Int, priority::Float64)` updates in which the same key may appear many times (the last update of a key is its final priority). It returns the distinct keys ordered by final priority, smallest first. Use `FixedHeap` with lazy deletion: push every update, and when popping skip entries that are not the key's latest update. Include the heap code in your answer.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test final_order([(1, 5.0), (2, 3.0), (1, 1.0)]) == [1, 2]
+@test final_order([(1, 5.0), (2, 3.0), (1, 4.0), (2, 9.0), (1, 2.0)]) == [1, 2]
+ups = [(mod1(i, 3), Float64(100 - i)) for i in 1:60]
+@test final_order(ups) == [3, 2, 1]
+@test final_order(Tuple{Int,Float64}[]) == Int[]
+'''
+reference = '''
+mutable struct FixedHeap
+    data::Vector{Tuple{Float64,Int}}
+    n::Int
+end
+FixedHeap(cap) = FixedHeap(Vector{Tuple{Float64,Int}}(undef, cap), 0)
+
+function heappush!(h::FixedHeap, x)
+    h.n += 1
+    i = h.n
+    h.data[i] = x
+    while i > 1 && h.data[i] < h.data[i >> 1]
+        h.data[i], h.data[i >> 1] = h.data[i >> 1], h.data[i]
+        i >>= 1
+    end
+end
+
+function heappop!(h::FixedHeap)
+    top = h.data[1]
+    h.data[1] = h.data[h.n]
+    h.n -= 1
+    i = 1
+    while true
+        l, r, m = 2i, 2i + 1, i
+        l <= h.n && h.data[l] < h.data[m] && (m = l)
+        r <= h.n && h.data[r] < h.data[m] && (m = r)
+        m == i && break
+        h.data[i], h.data[m] = h.data[m], h.data[i]
+        i = m
+    end
+    return top
+end
+
+function final_order(updates)
+    latest = Dict{Int,Float64}()
+    h = FixedHeap(length(updates))
+    for (k, p) in updates
+        latest[k] = p
+        heappush!(h, (p, k))
+    end
+    out = Int[]
+    seen = Set{Int}()
+    while h.n > 0
+        p, k = heappop!(h)
+        (k in seen || latest[k] != p) && continue
+        push!(seen, k)
+        push!(out, k)
+    end
+    return out
+end
+'''
+negative = '''
+mutable struct FixedHeap
+    data::Vector{Tuple{Float64,Int}}
+    n::Int
+end
+FixedHeap(cap) = FixedHeap(Vector{Tuple{Float64,Int}}(undef, cap), 0)
+
+function heappush!(h::FixedHeap, x)
+    h.n += 1
+    i = h.n
+    h.data[i] = x
+    while i > 1 && h.data[i] < h.data[i >> 1]
+        h.data[i], h.data[i >> 1] = h.data[i >> 1], h.data[i]
+        i >>= 1
+    end
+end
+
+function heappop!(h::FixedHeap)
+    top = h.data[1]
+    h.data[1] = h.data[h.n]
+    h.n -= 1
+    i = 1
+    while true
+        l, r, m = 2i, 2i + 1, i
+        l <= h.n && h.data[l] < h.data[m] && (m = l)
+        r <= h.n && h.data[r] < h.data[m] && (m = r)
+        m == i && break
+        h.data[i], h.data[m] = h.data[m], h.data[i]
+        i = m
+    end
+    return top
+end
+
+function final_order(updates)
+    latest = Dict{Int,Float64}()
+    h = FixedHeap(length(unique(first.(updates))))
+    for (k, p) in updates
+        latest[k] = p
+        heappush!(h, (p, k))
+    end
+    out = Int[]
+    seen = Set{Int}()
+    while h.n > 0
+        p, k = heappop!(h)
+        (k in seen || latest[k] != p) && continue
+        push!(seen, k)
+        push!(out, k)
+    end
+    return out
+end
+'''

@@ -1,0 +1,61 @@
+id = "metaprogramming_01"
+area = "metaprogramming"
+deps = []
+prompt = '''
+This `@swap` macro does not work on local variables, and would clobber a variable called `tmp`. Fix it so it swaps any two variables or `ref[i]`-style places in the caller's scope, including locals and a local actually named `tmp`.
+
+```julia
+macro swap(a, b)
+    quote
+        tmp = $a
+        $a = $b
+        $b = tmp
+    end
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+function t1()
+    x = 1; y = 2
+    @swap x y
+    return (x, y)
+end
+function t2()
+    tmp = 1; other = 2
+    @swap tmp other
+    return (tmp, other)
+end
+function t3()
+    v = [1, 2, 3]
+    @swap v[1] v[3]
+    return v
+end
+@test t1() == (2, 1)
+@test t2() == (2, 1)
+@test t3() == [3, 2, 1]
+gx = 10; gy = 20
+@swap gx gy
+@test (gx, gy) == (20, 10)
+'''
+reference = '''
+macro swap(a, b)
+    t = gensym(:tmp)
+    quote
+        $t = $(esc(a))
+        $(esc(a)) = $(esc(b))
+        $(esc(b)) = $t
+        nothing
+    end
+end
+'''
+negative = '''
+macro swap(a, b)
+    quote
+        tmp = $a
+        $a = $b
+        $b = tmp
+    end
+end
+'''

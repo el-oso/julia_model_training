@@ -1,0 +1,63 @@
+id = "trim_02"
+area = "trim"
+deps = []
+prompt = '''
+`total_area` loops over a `Vector{Shape}` of five concrete subtypes, which forces dynamic dispatch on every element and is not allowed by `juliac --trim=safe`. Change `make_shapes` (and `total_area` if needed) so that the container returned by `make_shapes()` lets the compiler resolve every `area` call statically: `dynamic_calls(total_area, (typeof(make_shapes()),))` must be empty. Values must not change.
+
+```julia
+abstract type Shape end
+struct Circle <: Shape; r::Float64; end
+struct Square <: Shape; s::Float64; end
+struct Rect <: Shape; w::Float64; h::Float64; end
+struct Tri <: Shape; b::Float64; h::Float64; end
+struct Ellipse <: Shape; a::Float64; b::Float64; end
+area(c::Circle) = pi * c.r^2
+area(s::Square) = s.s^2
+area(r::Rect) = r.w * r.h
+area(t::Tri) = t.b * t.h / 2
+area(e::Ellipse) = pi * e.a * e.b
+
+make_shapes() = Shape[Circle(1.0), Square(2.0), Rect(2.0, 3.0), Tri(2.0, 3.0), Ellipse(1.0, 2.0)]
+total_area(shapes) = sum(area, shapes)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+s = make_shapes()
+@test total_area(s) ≈ pi + 4 + 6 + 3 + 2pi
+@test is_stable(total_area, (typeof(s),))
+@test isempty(dynamic_calls(total_area, (typeof(s),)))
+'''
+reference = '''
+abstract type Shape end
+struct Circle <: Shape; r::Float64; end
+struct Square <: Shape; s::Float64; end
+struct Rect <: Shape; w::Float64; h::Float64; end
+struct Tri <: Shape; b::Float64; h::Float64; end
+struct Ellipse <: Shape; a::Float64; b::Float64; end
+area(c::Circle) = pi * c.r^2
+area(s::Square) = s.s^2
+area(r::Rect) = r.w * r.h
+area(t::Tri) = t.b * t.h / 2
+area(e::Ellipse) = pi * e.a * e.b
+
+make_shapes() = (Circle(1.0), Square(2.0), Rect(2.0, 3.0), Tri(2.0, 3.0), Ellipse(1.0, 2.0))
+total_area(shapes) = sum(area, shapes)
+'''
+negative = '''
+abstract type Shape end
+struct Circle <: Shape; r::Float64; end
+struct Square <: Shape; s::Float64; end
+struct Rect <: Shape; w::Float64; h::Float64; end
+struct Tri <: Shape; b::Float64; h::Float64; end
+struct Ellipse <: Shape; a::Float64; b::Float64; end
+area(c::Circle) = pi * c.r^2
+area(s::Square) = s.s^2
+area(r::Rect) = r.w * r.h
+area(t::Tri) = t.b * t.h / 2
+area(e::Ellipse) = pi * e.a * e.b
+
+make_shapes() = Shape[Circle(1.0), Square(2.0), Rect(2.0, 3.0), Tri(2.0, 3.0), Ellipse(1.0, 2.0)]
+total_area(shapes) = sum(area, shapes)
+'''

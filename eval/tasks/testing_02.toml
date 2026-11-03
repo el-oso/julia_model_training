@@ -1,0 +1,46 @@
+id = "testing_02"
+area = "testing"
+deps = []
+prompt = '''
+Write two `@testitem` blocks (TestItems.jl style; do not import anything, the items are recorded without being run) for `clamp01(x) = clamp(x, 0, 1)`. Item one is named `"clamp01 inside range"` and carries `tags=[:fast]`; item two is named `"clamp01 saturates"`. Each item runs in its own module, so each body must define `clamp01` itself, and each must contain at least two `@test` expressions.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test length(TESTITEMS) == 2
+@test TESTITEMS[1].name == "clamp01 inside range"
+@test TESTITEMS[2].name == "clamp01 saturates"
+count_tests(ex) = ex isa Expr ? (ex.head === :macrocall && ex.args[1] === Symbol("@test") ? 1 : 0) + sum(count_tests, ex.args; init = 0) : 0
+function defines(ex, name)
+    ex isa Expr || return false
+    if ex.head === :function || ex.head === :(=)
+        sig = ex.args[1]
+        sig isa Expr && sig.head === :where && (sig = sig.args[1])
+        sig isa Expr && sig.head === :call && sig.args[1] === name && return true
+    end
+    return any(a -> defines(a, name), ex.args)
+end
+@test all(count_tests(it.body) >= 2 for it in TESTITEMS)
+@test all(defines(it.body, :clamp01) for it in TESTITEMS)
+has_fast(it) = any(o -> o isa Expr && o.head === :(=) && o.args[1] === :tags && o.args[2] == :([:fast]), it.opts)
+@test has_fast(TESTITEMS[1])
+'''
+reference = '''
+@testitem "clamp01 inside range" tags=[:fast] begin
+    clamp01(x) = clamp(x, 0, 1)
+    @test clamp01(0.5) == 0.5
+    @test clamp01(0) == 0
+end
+
+@testitem "clamp01 saturates" begin
+    clamp01(x) = clamp(x, 0, 1)
+    @test clamp01(-3) == 0
+    @test clamp01(7.5) == 1
+end
+'''
+negative = '''
+@testitem "clamp01" begin
+    clamp01(x) = clamp(x, 0, 1)
+    @test clamp01(0.5) == 0.5
+end
+'''

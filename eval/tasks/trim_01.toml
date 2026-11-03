@@ -1,0 +1,42 @@
+id = "trim_01"
+area = "trim"
+deps = []
+prompt = '''
+We compile this with `juliac --trim=safe`, which needs every call to be statically resolved, but `sum_odd_squares` collects into a `Vector{Any}` and so dispatches dynamically. Rewrite it so inference gives a concrete return type and the optimized IR contains no dynamically dispatched calls.
+
+```julia
+function sum_odd_squares(xs::Vector{Int})
+    out = []
+    for x in xs
+        isodd(x) && push!(out, x^2)
+    end
+    return sum(out)
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test sum_odd_squares([1, 2, 3, 4, 5]) == 35
+@test sum_odd_squares(Int[]) == 0
+@test is_stable(sum_odd_squares, (Vector{Int},))
+@test isempty(dynamic_calls(sum_odd_squares, (Vector{Int},)))
+'''
+reference = '''
+function sum_odd_squares(xs::Vector{Int})
+    total = 0
+    for x in xs
+        isodd(x) && (total += x^2)
+    end
+    return total
+end
+'''
+negative = '''
+function sum_odd_squares(xs::Vector{Int})
+    out = []
+    for x in xs
+        isodd(x) && push!(out, x^2)
+    end
+    return sum(out)
+end
+'''

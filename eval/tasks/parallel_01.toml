@@ -1,0 +1,52 @@
+id = "parallel_01"
+area = "parallel"
+deps = []
+prompt = '''
+`count_even` has a data race: several threads update the shared counter `c`, so counts are lost. Fix it so the result is always exact when run with multiple threads (the check runs Julia with 2 threads), without taking a lock on every element. It must work for any `AbstractVector{<:Integer}` including ranges and empty input.
+
+```julia
+function count_even(v)
+    c = 0
+    Threads.@threads for x in v
+        iseven(x) && (c += 1)
+    end
+    return c
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test Threads.nthreads() >= 2
+@test count_even(1:2_000_000) == 1_000_000
+@test count_even(collect(1:2_000_000)) == 1_000_000
+@test count_even(Int[]) == 0
+@test count_even([2, 4, 5]) == 2
+@test count_even(1:1) == 0
+'''
+reference = '''
+function count_even(v)
+    n = length(v)
+    nt = Threads.nthreads()
+    counts = zeros(Int, nt)
+    Threads.@threads :static for t in 1:nt
+        lo = firstindex(v) + div((t - 1) * n, nt)
+        hi = firstindex(v) + div(t * n, nt) - 1
+        c = 0
+        for i in lo:hi
+            iseven(v[i]) && (c += 1)
+        end
+        counts[t] = c
+    end
+    return sum(counts)
+end
+'''
+negative = '''
+function count_even(v)
+    c = 0
+    Threads.@threads for x in v
+        iseven(x) && (c += 1)
+    end
+    return c
+end
+'''

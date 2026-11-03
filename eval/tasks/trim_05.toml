@@ -1,0 +1,28 @@
+id = "trim_05"
+area = "trim"
+deps = []
+prompt = '''
+Write a `juliac`-style entry point using the `@main` macro (Julia 1.11+): `function (@main)(args::Vector{String})` that prints `hello <args joined by a space>` to `Core.stdout` with `println`, and returns `Cint(1)` if any argument starts with `--`, otherwise `Cint(0)`. The inferred return type must be exactly `Cint`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test occursin("@main", SOLUTION_SOURCE)
+@test isdefined(@__MODULE__, :main)
+@test rtype(main, (Vector{String},)) === Cint
+@test main(["a", "b"]) === Cint(0)
+@test main(String[]) === Cint(0)
+@test main(["--bad"]) === Cint(1)
+'''
+reference = '''
+function (@main)(args::Vector{String})
+    println(Core.stdout, "hello ", join(args, " "))
+    return any(a -> startswith(a, "--"), args) ? Cint(1) : Cint(0)
+end
+'''
+negative = '''
+function main(args::Vector{String})
+    println("hello ", join(args, " "))
+    return any(a -> startswith(a, "--"), args) ? 1 : 0
+end
+'''

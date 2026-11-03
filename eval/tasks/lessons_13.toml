@@ -1,0 +1,35 @@
+id = "lessons_13"
+area = "lessons"
+deps = []
+prompt = '''
+Write `normalize_l1(v::AbstractVector)` returning `v` divided by the sum of its entries, as a new vector, computed with an explicit loop for the sum. The element type of the result must follow the input: `Float32` in gives `Float32` out, and `Rational{Int}` in gives exact `Rational{Int}` out.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+r = normalize_l1(Float32[1, 2, 5])
+@test eltype(r) === Float32
+@test r ≈ Float32[0.125, 0.25, 0.625]
+q = normalize_l1([1//1, 2//1, 3//1])
+@test eltype(q) === Rational{Int}
+@test q == [1//6, 2//6, 3//6]
+@test normalize_l1([1.0, 3.0]) == [0.25, 0.75]
+'''
+reference = '''
+function normalize_l1(v::AbstractVector)
+    s = zero(eltype(v))
+    for x in v
+        s += x
+    end
+    return v ./ s
+end
+'''
+negative = '''
+function normalize_l1(v::AbstractVector)
+    s = 0.0
+    for x in v
+        s += x
+    end
+    return v ./ s
+end
+'''

@@ -1,0 +1,37 @@
+id = "dispatch_types_04"
+area = "dispatch_types"
+deps = []
+prompt = '''
+Make `Countdown` a proper Julia iterable: `for i in Countdown(3)` yields `3, 2, 1`; `collect`, `sum`, `length`, `first` and `eltype` must all work (`collect(Countdown(0))` is an empty `Vector{Int}`), by implementing the iteration interface (not by converting to an array).
+
+```julia
+struct Countdown
+    n::Int
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test collect(Countdown(3)) == [3, 2, 1]
+@test collect(Countdown(0)) isa Vector{Int} && isempty(collect(Countdown(0)))
+@test sum(Countdown(4)) == 10
+@test length(Countdown(5)) == 5
+@test first(Countdown(3)) == 3
+@test eltype(Countdown) === Int
+@test Base.IteratorSize(Countdown) isa Base.HasLength
+@test [i for i in Countdown(2)] == [2, 1]
+'''
+reference = '''
+struct Countdown
+    n::Int
+end
+Base.iterate(c::Countdown, s::Int = c.n) = s < 1 ? nothing : (s, s - 1)
+Base.length(c::Countdown) = max(c.n, 0)
+Base.eltype(::Type{Countdown}) = Int
+'''
+negative = '''
+struct Countdown
+    n::Int
+end
+'''

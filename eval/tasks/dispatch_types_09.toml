@@ -1,0 +1,27 @@
+id = "dispatch_types_09"
+area = "dispatch_types"
+deps = []
+prompt = '''
+`tdot` computes a dot product of two fixed-size tuples through temporary vectors. Rewrite it for `NTuple`s of equal length `N` and any number element type `T` so that it allocates nothing and its return type is inferred concretely (`Float32` tuples give `Float32`). Mismatched lengths must be a `MethodError`.
+
+```julia
+tdot(a, b) = sum(collect(a) .* collect(b))
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+a = (1.0, 2.0, 3.0); b = (4.0, 5.0, 6.0)
+@test tdot(a, b) == 32.0
+@test tdot((1f0, 2f0), (3f0, 4f0)) === 11.0f0
+@test tdot((1, 2), (3, 4)) === 11
+@test rtype(tdot, (NTuple{3,Float64}, NTuple{3,Float64})) === Float64
+@test alloc_of(tdot, a, b) == 0
+@test_throws MethodError tdot((1.0, 2.0), (1.0, 2.0, 3.0))
+'''
+reference = '''
+tdot(a::NTuple{N,T}, b::NTuple{N,T}) where {N,T<:Number} = sum(map(*, a, b))
+'''
+negative = '''
+tdot(a, b) = sum(collect(a) .* collect(b))
+'''

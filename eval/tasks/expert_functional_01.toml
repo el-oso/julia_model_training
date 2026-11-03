@@ -1,0 +1,52 @@
+id = "expert_functional_01"
+area = "expert_functional"
+deps = ["OffsetArrays"]
+prompt = '''
+`prefix_sums` assumes 1-based indexing and fails on empty input. Rewrite it for any `AbstractVector` so that the result has the same axes as the input (an `OffsetVector` in gives an `OffsetVector` with the same axes out), works for empty input, and keeps `Float32` as `Float32`.
+
+```julia
+function prefix_sums(A::AbstractVector)
+    out = similar(A)
+    out[1] = A[1]
+    for i in 2:length(A)
+        out[i] = out[i-1] + A[i]
+    end
+    return out
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test prefix_sums([1, 2, 3, 4]) == [1, 3, 6, 10]
+@test prefix_sums(Int[]) == Int[]
+@test prefix_sums(Float32[0.5, 0.25]) isa Vector{Float32}
+@test prefix_sums(1:4) == [1, 3, 6, 10]
+@test prefix_sums(view([5, 1, 2, 3, 9], 2:4)) == [1, 3, 6]
+O = OffsetArray([1, 2, 3], -2:0)
+P = prefix_sums(O)
+@test axes(P) == axes(O)
+@test collect(P) == [1, 3, 6]
+@test P[-2] == 1 && P[0] == 6
+'''
+reference = '''
+function prefix_sums(A::AbstractVector)
+    out = similar(A, typeof(zero(eltype(A)) + zero(eltype(A))))
+    s = zero(eltype(out))
+    for i in eachindex(A, out)
+        s += A[i]
+        out[i] = s
+    end
+    return out
+end
+'''
+negative = '''
+function prefix_sums(A::AbstractVector)
+    out = similar(A)
+    out[1] = A[1]
+    for i in 2:length(A)
+        out[i] = out[i-1] + A[i]
+    end
+    return out
+end
+'''

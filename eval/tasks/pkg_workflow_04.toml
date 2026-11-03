@@ -1,0 +1,54 @@
+id = "pkg_workflow_04"
+area = "pkg_workflow"
+deps = []
+prompt = '''
+Write `add_test_dep(toml::String, name::String, uuid::String)::String` for the old-style test dependency layout of a `Project.toml` (`[extras]` plus `[targets]`). It must put `name = "uuid"` into `[extras]` and append `name` to the `test` list of `[targets]`, creating either section if missing, without duplicating entries when called twice, and without disturbing any other section. The result must parse as TOML (re-serializing with the `TOML` standard library is fine).
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using TOML
+base = """
+name = "Foo"
+uuid = "11111111-1111-1111-1111-111111111111"
+
+[deps]
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c595fb3c57"
+
+[targets]
+test = ["Test"]
+"""
+aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+d = TOML.parse(add_test_dep(base, "Aqua", aqua))
+@test d["extras"] == Dict("Test" => "8dfed614-e22c-5e08-85e1-65c595fb3c57", "Aqua" => aqua)
+@test d["targets"]["test"] == ["Test", "Aqua"]
+@test d["deps"] == Dict("JSON" => "682c06a0-de6a-54ab-a142-c8b1cf79cde6")
+@test d["compat"] == Dict("julia" => "1.10")
+@test TOML.parse(add_test_dep(add_test_dep(base, "Aqua", aqua), "Aqua", aqua)) == d
+bare = "name = \"Foo\"\nuuid = \"11111111-1111-1111-1111-111111111111\"\n\n[deps]\nJSON = \"682c06a0-de6a-54ab-a142-c8b1cf79cde6\"\n"
+d2 = TOML.parse(add_test_dep(bare, "Aqua", aqua))
+@test d2["extras"] == Dict("Aqua" => aqua)
+@test d2["targets"] == Dict("test" => ["Aqua"])
+@test d2["deps"] == Dict("JSON" => "682c06a0-de6a-54ab-a142-c8b1cf79cde6")
+'''
+reference = '''
+using TOML
+function add_test_dep(toml::String, name::String, uuid::String)
+    d = TOML.parse(toml)
+    extras = get!(d, "extras", Dict{String,Any}())
+    extras[name] = uuid
+    targets = get!(d, "targets", Dict{String,Any}())
+    tests = get!(targets, "test", String[])
+    name in tests || push!(tests, name)
+    return sprint(TOML.print, d)
+end
+'''
+negative = '''
+add_test_dep(toml::String, name::String, uuid::String) = toml * "\n[extras]\n$name = \"$uuid\"\n"
+'''

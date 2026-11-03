@@ -1,0 +1,39 @@
+id = "memory_07"
+area = "memory"
+deps = []
+prompt = '''
+Because of field alignment padding, `Rec` takes 24 bytes. Reorder the fields so that `sizeof(Rec)` is 16 bytes, while `Rec(a, b, c)` keeps its positional argument order and the fields keep their names `a`, `b`, `c`.
+
+```julia
+struct Rec
+    a::Bool
+    b::Int64
+    c::Bool
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+r = Rec(true, 5, false)
+@test sizeof(Rec) == 16
+@test r.a === true && r.b === 5 && r.c === false
+@test Set(fieldnames(Rec)) == Set([:a, :b, :c])
+@test isbitstype(Rec)
+@test Rec(false, -1, true).b === -1
+'''
+reference = '''
+struct Rec
+    b::Int64
+    a::Bool
+    c::Bool
+    Rec(a, b, c) = new(b, a, c)
+end
+'''
+negative = '''
+struct Rec
+    a::Bool
+    b::Int64
+    c::Bool
+end
+'''

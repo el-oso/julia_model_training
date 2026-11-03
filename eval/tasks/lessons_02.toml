@@ -1,0 +1,32 @@
+id = "lessons_02"
+area = "lessons"
+deps = []
+prompt = '''
+Write `frame(payload::Vector{UInt8})` that returns the `Vector{UInt8}` obtained by writing to an `IOBuffer` first one length byte (`UInt8(length(payload))`, payloads are at most 255 bytes) and then the payload bytes, exactly as given, including bytes of 0x80 and above.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+p = UInt8[0x00, 0x7f, 0x80, 0xff, 0xc3, 0xa9]
+@test frame(p) == [0x06; p]
+@test frame(UInt8[]) == UInt8[0x00]
+@test length(frame(fill(0xe9, 200))) == 201
+'''
+reference = '''
+function frame(payload::Vector{UInt8})
+    io = IOBuffer()
+    write(io, UInt8(length(payload)))
+    write(io, payload)
+    return take!(io)
+end
+'''
+negative = '''
+function frame(payload::Vector{UInt8})
+    io = IOBuffer()
+    write(io, UInt8(length(payload)))
+    for b in payload
+        write(io, Char(b))
+    end
+    return take!(io)
+end
+'''

@@ -1,0 +1,34 @@
+id = "linalg_sparse_04"
+area = "linalg_sparse"
+deps = []
+prompt = '''
+`spectrum(A)` returns the eigenvalues of a covariance matrix that is symmetric only up to rounding noise, and for such inputs it can return complex numbers. Fix it so it always returns the real eigenvalues in ascending order (treating the matrix as symmetric, using one triangle), keeping `Float32` input as `Float32`.
+
+```julia
+using LinearAlgebra
+spectrum(A) = eigvals(A)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using LinearAlgebra
+A = [1.0 1e-8; -1e-8 1.0]
+s = spectrum(A)
+@test eltype(s) === Float64
+@test s ≈ [1 - 1e-8, 1 + 1e-8]
+B = randn(6, 6); C = B * B'
+C[1, 2] += 1e-13
+sc = spectrum(C)
+@test eltype(sc) === Float64 && issorted(sc)
+@test sc ≈ eigvals(Symmetric(C))
+@test eltype(spectrum(Float32[2 1; 1 2])) === Float32
+'''
+reference = '''
+using LinearAlgebra
+spectrum(A) = eigvals(Symmetric(A))
+'''
+negative = '''
+using LinearAlgebra
+spectrum(A) = eigvals(A)
+'''

@@ -1,0 +1,50 @@
+id = "lessons_01"
+area = "lessons"
+deps = []
+prompt = '''
+Write `split_words(s::AbstractString)` that splits `s` into words separated by runs of ASCII spaces and commas, and returns a `Vector{String}` of the non-empty words. Words may contain any Unicode characters (for example `"ñandú"`, `"€"`, `"日本"`).
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test split_words("ñandú, 日本 €") == ["ñandú", "日本", "€"]
+@test split_words("  a,,b ,c ") == ["a", "b", "c"]
+@test split_words("") == String[]
+@test split_words("€€,日本語") == ["€€", "日本語"]
+'''
+reference = '''
+function split_words(s::AbstractString)
+    out = String[]
+    start = nothing
+    for i in eachindex(s)
+        c = s[i]
+        if c == ' ' || c == ','
+            if start !== nothing
+                push!(out, String(SubString(s, start, prevind(s, i))))
+                start = nothing
+            end
+        elseif start === nothing
+            start = i
+        end
+    end
+    start === nothing || push!(out, String(SubString(s, start, lastindex(s))))
+    return out
+end
+'''
+negative = '''
+function split_words(s::AbstractString)
+    out = String[]
+    start = 0
+    for i in 1:length(s)
+        c = s[i]
+        if c == ' ' || c == ','
+            start > 0 && push!(out, s[start:i-1])
+            start = 0
+        elseif start == 0
+            start = i
+        end
+    end
+    start > 0 && push!(out, s[start:end])
+    return out
+end
+'''

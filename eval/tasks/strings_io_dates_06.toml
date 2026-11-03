@@ -1,0 +1,46 @@
+id = "strings_io_dates_06"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+Write `sum_ints(io::IO)` that returns the sum of the integers in a text stream, one integer per line. Blank or whitespace-only lines are skipped, surrounding whitespace is ignored, and the last line may lack a trailing newline. It must process the stream line by line (a stream that refuses to be read in one go must work), and also work through `open(sum_ints, path)`.
+
+```julia
+sum_ints(io::IO) = sum(parse.(Int, split(read(io, String), '\n')))
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+struct LineOnly <: IO
+    lines::Vector{String}
+    pos::Base.RefValue{Int}
+end
+Base.eof(io::LineOnly) = io.pos[] > length(io.lines)
+function Base.readline(io::LineOnly; keep::Bool = false)
+    l = io.lines[io.pos[]]
+    io.pos[] += 1
+    return keep ? l * "\n" : l
+end
+Base.read(::LineOnly, ::Type{String}) = error("the stream must be consumed line by line")
+@test sum_ints(IOBuffer("1\n2\n3\n")) == 6
+@test sum_ints(IOBuffer("1\n\n 2 \n3")) == 6
+@test sum_ints(IOBuffer("")) == 0
+@test sum_ints(IOBuffer("-4\n10\n")) == 6
+@test sum_ints(LineOnly(["5", "", " 7"], Ref(1))) == 12
+path, io = mktemp()
+write(io, "4\n5"); close(io)
+@test open(sum_ints, path) == 9
+'''
+reference = '''
+function sum_ints(io::IO)
+    total = 0
+    for line in eachline(io)
+        s = strip(line)
+        isempty(s) || (total += parse(Int, s))
+    end
+    return total
+end
+'''
+negative = '''
+sum_ints(io::IO) = sum(parse.(Int, split(read(io, String), '\n')))
+'''

@@ -1,0 +1,26 @@
+id = "dispatch_types_07"
+area = "dispatch_types"
+deps = []
+prompt = '''
+`relu` returns a `Union{Int,Float64}` for integer input. Make it type-stable for every real type: the result must have the same type as the input (`relu(-3)` is `0::Int`, `relu(-2.5f0)` is `0.0f0`, works for `BigFloat` and `Rational`).
+
+```julia
+relu(x) = x > 0 ? x : 0.0
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test (@inferred relu(3)) === 3
+@test (@inferred relu(-3)) === 0
+@test (@inferred relu(-2.5f0)) === 0.0f0
+@test (@inferred relu(2.5)) === 2.5
+@test relu(BigFloat(-1)) == 0 && relu(BigFloat(-1)) isa BigFloat
+@test (@inferred relu(-1//2)) === 0//1
+'''
+reference = '''
+relu(x) = x > zero(x) ? x : zero(x)
+'''
+negative = '''
+relu(x) = x > 0 ? x : 0.0
+'''

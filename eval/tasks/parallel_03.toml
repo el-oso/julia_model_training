@@ -1,0 +1,52 @@
+id = "parallel_03"
+area = "parallel"
+deps = []
+prompt = '''
+`histogram` counts how often each value in `1:nbins` occurs in `data`, but the threads update the shared `h` without synchronization, so counts are lost. Fix it so the result is exact with multiple threads (the check runs Julia with 2 threads), avoiding a lock or atomic operation on every element (use per-thread partial histograms that are combined at the end).
+
+```julia
+function histogram(data, nbins)
+    h = zeros(Int, nbins)
+    Threads.@threads for x in data
+        h[x] += 1
+    end
+    return h
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test Threads.nthreads() >= 2
+data = repeat(1:4, 500_000)
+h = histogram(data, 4)
+@test h == fill(500_000, 4)
+@test h isa Vector{Int}
+@test histogram(Int[], 3) == [0, 0, 0]
+@test histogram([1, 3, 3], 3) == [1, 0, 2]
+'''
+reference = '''
+function histogram(data, nbins)
+    n = length(data)
+    nt = Threads.nthreads()
+    parts = [zeros(Int, nbins) for _ in 1:nt]
+    Threads.@threads :static for t in 1:nt
+        lo = firstindex(data) + div((t - 1) * n, nt)
+        hi = firstindex(data) + div(t * n, nt) - 1
+        h = parts[t]
+        for i in lo:hi
+            h[data[i]] += 1
+        end
+    end
+    return reduce(+, parts)
+end
+'''
+negative = '''
+function histogram(data, nbins)
+    h = zeros(Int, nbins)
+    Threads.@threads for x in data
+        h[x] += 1
+    end
+    return h
+end
+'''

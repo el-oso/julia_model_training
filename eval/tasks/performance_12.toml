@@ -1,0 +1,45 @@
+id = "performance_12"
+area = "performance"
+deps = []
+prompt = '''
+This memoized Fibonacci keeps its cache in an untyped non-constant global, so `fib` infers as `Any`. Fix it so that `fib(::Int)` has inferred return type `Int` and the cache is a concretely typed `Dict{Int,Int}`. Do not mutate the dictionary inside a `get!` callback that recurses.
+
+```julia
+memo = Dict()
+
+function fib(n)
+    n <= 2 && return 1
+    haskey(memo, n) && return memo[n]
+    memo[n] = fib(n - 1) + fib(n - 2)
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test fib(1) == 1 && fib(2) == 1
+@test fib(50) == 12586269025
+@test fib(80) == 23416728348467685
+@test rtype(fib, (Int,)) === Int
+'''
+reference = '''
+const MEMO = Dict{Int,Int}()
+
+function fib(n::Int)
+    n <= 2 && return 1
+    v = get(MEMO, n, 0)
+    v != 0 && return v
+    r = fib(n - 1) + fib(n - 2)
+    MEMO[n] = r
+    return r
+end
+'''
+negative = '''
+memo = Dict()
+
+function fib(n)
+    n <= 2 && return 1
+    haskey(memo, n) && return memo[n]
+    memo[n] = fib(n - 1) + fib(n - 2)
+end
+'''

@@ -1,0 +1,51 @@
+id = "testing_01"
+area = "testing"
+deps = []
+prompt = '''
+Write `sort_tests(f)::Bool`: a mini test-suite for candidate sorting functions. `f(v::Vector{Int})` must return a new sorted `Vector{Int}` and must not mutate its argument. `sort_tests(f)` returns `true` only if `f` behaves correctly on a varied set of inputs (empty, one element, already sorted, reversed, duplicates, negatives, a larger random vector from a fixed-seed RNG) and returns `false` (it must never throw) for broken implementations, including ones that throw, drop elements, mutate the input, or only fail on large inputs.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+good(v) = sort(v)
+mutants = [
+    v -> unique(sort(v)),
+    v -> isempty(v) ? [0] : sort(v),
+    v -> sort!(v),
+    v -> reverse(sort(v)),
+    v -> length(v) > 100 ? v : sort(v),
+    v -> length(v) == 1 ? Int[] : sort(v),
+    v -> error("boom"),
+    v -> sort(v)[1:max(end - 1, 0)],
+    v -> sort(abs.(v)),
+    v -> (w = copy(v); sort!(w); w[1:end]),   # correct: must pass below
+]
+@test sort_tests(good)
+@test sort_tests(mutants[end])
+for m in mutants[1:end-1]
+    @test !sort_tests(m)
+end
+'''
+reference = '''
+using Random
+function sort_tests(f)
+    try
+        rng = MersenneTwister(1234)
+        inputs = [Int[], [1], [1, 2, 3], [3, 2, 1], [2, 2, 1, 1, 3], [-5, 3, -1, 0, 3],
+            rand(rng, -1000:1000, 500), rand(rng, 1:10, 1000)]
+        for v in inputs
+            orig = copy(v)
+            r = f(v)
+            v == orig || return false
+            r isa Vector{Int} || return false
+            r == sort(orig) || return false
+        end
+        return true
+    catch
+        return false
+    end
+end
+'''
+negative = '''
+sort_tests(f) = true
+'''

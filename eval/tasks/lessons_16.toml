@@ -1,0 +1,32 @@
+id = "lessons_16"
+area = "lessons"
+deps = []
+prompt = '''
+Write `axpy!(y::AbstractVector, a, x::AbstractVector)` computing `y .+= a .* x` in place with an explicit loop, returning `y`. Mismatched lengths must raise a `DimensionMismatch`; the loop itself should be as fast as you can reasonably make it.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+y = [1.0, 2.0, 3.0]
+@test axpy!(y, 2.0, [1.0, 1.0, 1.0]) === y
+@test y == [3.0, 4.0, 5.0]
+@test_throws DimensionMismatch axpy!(zeros(5), 1.0, ones(3))
+@test_throws DimensionMismatch axpy!(zeros(2), 1.0, ones(3))
+'''
+reference = '''
+function axpy!(y::AbstractVector, a, x::AbstractVector)
+    axes(y) == axes(x) || throw(DimensionMismatch("y and x must have equal axes: $(axes(y)) vs $(axes(x))"))
+    for i in eachindex(y, x)
+        y[i] += a * x[i]
+    end
+    return y
+end
+'''
+negative = '''
+function axpy!(y::AbstractVector, a, x::AbstractVector)
+    @inbounds for i in eachindex(y)
+        y[i] += a * x[i]
+    end
+    return y
+end
+'''

@@ -1,0 +1,34 @@
+id = "strings_io_dates_04"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+`age_in_years` is wrong around birthdays because years are not 365 days long. Fix it so it returns the number of completed years between `birth` and `today` (a person born 2000-06-15 is 23 on 2024-06-14 and 24 on 2024-06-15).
+
+```julia
+using Dates
+age_in_years(birth::Date, today::Date) = div(Dates.value(today - birth), 365)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using Dates
+@test age_in_years(Date(2000, 6, 15), Date(2024, 6, 14)) == 23
+@test age_in_years(Date(2000, 6, 15), Date(2024, 6, 15)) == 24
+@test age_in_years(Date(2000, 6, 15), Date(2024, 6, 16)) == 24
+@test age_in_years(Date(2000, 6, 15), Date(2000, 6, 15)) == 0
+@test age_in_years(Date(2001, 1, 1), Date(2024, 12, 31)) == 23
+@test age_in_years(Date(1999, 12, 31), Date(2000, 1, 1)) == 0
+@test age_in_years(Date(1950, 3, 1), Date(2024, 2, 29)) == 73
+'''
+reference = '''
+using Dates
+function age_in_years(birth::Date, today::Date)
+    years = year(today) - year(birth)
+    return (month(today), day(today)) < (month(birth), day(birth)) ? years - 1 : years
+end
+'''
+negative = '''
+using Dates
+age_in_years(birth::Date, today::Date) = div(Dates.value(today - birth), 365)
+'''

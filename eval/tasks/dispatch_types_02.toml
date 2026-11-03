@@ -1,0 +1,26 @@
+id = "dispatch_types_02"
+area = "dispatch_types"
+deps = []
+prompt = '''
+`mean_abs` is annotated much more narrowly than its implementation needs, so it throws a `MethodError` for ranges, views, `Float32`, `BigFloat`, and so on. Fix the signature. Results for `Float32` input must be `Float32`.
+
+```julia
+mean_abs(x::Vector{Float64}) = sum(abs, x) / length(x)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test mean_abs([1.0, -2.0, 3.0]) ≈ 2.0
+@test mean_abs(Float32[-1, 3]) === 2.0f0
+@test mean_abs(view([1.0, -2.0, 3.0, 4.0], 2:3)) == 2.5
+@test mean_abs(1:4) == 2.5
+@test mean_abs(BigFloat[1, -3]) == 2
+@test mean_abs([1, -2, 3]) ≈ 2
+'''
+reference = '''
+mean_abs(x::AbstractArray) = sum(abs, x) / length(x)
+'''
+negative = '''
+mean_abs(x::Vector{Float64}) = sum(abs, x) / length(x)
+'''

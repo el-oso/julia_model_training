@@ -1,0 +1,78 @@
+id = "pkg_workflow_01"
+area = "pkg_workflow"
+deps = []
+prompt = '''
+Write `add_dep(toml::String, name::String, uuid::String)::String` that adds `name = "uuid"` to the `[deps]` section of a `Project.toml` text. Requirements: all other content (other sections, comments, ordering) is preserved verbatim; the new line is placed inside `[deps]` (not appended to whatever section happens to be last); if there is no `[deps]` section one is created; adding the same dependency twice is a no-op (the second call returns its input unchanged); adding an existing name with a different uuid throws `ArgumentError`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using TOML
+base = """
+name = "Foo"
+uuid = "11111111-1111-1111-1111-111111111111"
+version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c2c"
+
+# keep me
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c595fb3c57"
+"""
+json = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+out = add_dep(base, "JSON", json)
+d = TOML.parse(out)
+@test d["deps"] == Dict("LinearAlgebra" => "37e2e46d-f89d-539d-b4ee-838fcccc9c2c", "JSON" => json)
+@test d["compat"] == Dict("julia" => "1.10")
+@test d["extras"] == Dict("Test" => "8dfed614-e22c-5e08-85e1-65c595fb3c57")
+@test d["name"] == "Foo" && d["version"] == "0.1.0"
+@test occursin("# keep me", out)
+@test add_dep(out, "JSON", json) == out
+@test_throws ArgumentError add_dep(out, "JSON", "00000000-0000-0000-0000-000000000000")
+nodeps = "name = \"Foo\"\nuuid = \"11111111-1111-1111-1111-111111111111\"\n\n[compat]\njulia = \"1.10\"\n"
+d2 = TOML.parse(add_dep(nodeps, "JSON", json))
+@test d2["deps"] == Dict("JSON" => json)
+@test d2["compat"] == Dict("julia" => "1.10")
+@test d2["name"] == "Foo"
+'''
+reference = '''
+function add_dep(toml::String, name::String, uuid::String)
+    lines = split(toml, '\n')
+    entry = "$name = \"$uuid\""
+    isheader(l) = occursin(r"^\s*\[", l)
+    di = findfirst(l -> strip(l) == "[deps]", lines)
+    if isnothing(di)
+        ni = findfirst(isheader, lines)
+        new = ["[deps]", entry, ""]
+        if isnothing(ni)
+            while !isempty(lines) && isempty(strip(lines[end]))
+                pop!(lines)
+            end
+            return join([lines; ""; new[1:2]; ""], '\n')
+        end
+        return join([lines[1:ni-1]; new; lines[ni:end]], '\n')
+    end
+    stop = something(findfirst(isheader, lines[di+1:end]), length(lines) - di + 1) + di - 1
+    body = lines[di+1:stop-1]
+    for l in body
+        m = match(r"^\s*([A-Za-z0-9_\"]+)\s*=\s*\"([^\"]*)\"", l)
+        if !isnothing(m) && strip(m.captures[1], '"') == name
+            m.captures[2] == uuid && return toml
+            throw(ArgumentError("$name already present with uuid $(m.captures[2])"))
+        end
+    end
+    last = di
+    for i in di+1:stop-1
+        isempty(strip(lines[i])) || startswith(strip(lines[i]), "#") || (last = i)
+    end
+    insert!(lines, last + 1, entry)
+    return join(lines, '\n')
+end
+'''
+negative = '''
+add_dep(toml::String, name::String, uuid::String) = toml * "$name = \"$uuid\"\n"
+'''

@@ -1,0 +1,45 @@
+id = "debugging_04"
+area = "debugging"
+deps = []
+prompt = '''
+`fact(n)` silently returns wrong values once `n!` exceeds the `Int64` range (`fact(21)` wraps around). Fix it so it either returns the exactly correct `Int` or throws an `OverflowError`; it must never return a wrong number. `fact(0)` is `1`.
+
+```julia
+function fact(n::Int)
+    r = 1
+    for i in 2:n
+        r *= i
+    end
+    return r
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test fact(0) == 1
+@test fact(1) == 1
+@test fact(5) == 120
+@test fact(20) == 2432902008176640000
+@test fact(20) isa Int
+@test_throws OverflowError fact(21)
+@test_throws OverflowError fact(25)
+'''
+reference = '''
+function fact(n::Int)
+    r = 1
+    for i in 2:n
+        r = Base.checked_mul(r, i)
+    end
+    return r
+end
+'''
+negative = '''
+function fact(n::Int)
+    r = 1
+    for i in 2:n
+        r *= i
+    end
+    return r
+end
+'''

@@ -1,0 +1,26 @@
+id = "expert_functional_03"
+area = "expert_functional"
+deps = []
+prompt = '''
+`max_square` throws on empty input. Make it return `zero(eltype(v))` for an empty collection (squares are nonnegative, so zero is the natural identity) while keeping the same results otherwise and keeping the element type (`Float32` stays `Float32`; integers stay integers).
+
+```julia
+max_square(v) = maximum(x -> x^2, v)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test max_square(Float32[]) === 0.0f0
+@test max_square(Int[]) === 0
+@test max_square([-3, 2]) === 9
+@test max_square(Float32[-2, 1]) === 4.0f0
+@test max_square(-5.0:2.0) == 25.0
+@test max_square([0.5, -0.75]) === 0.5625
+'''
+reference = '''
+max_square(v) = maximum(x -> x^2, v; init = zero(eltype(v)))
+'''
+negative = '''
+max_square(v) = maximum(x -> x^2, v)
+'''

@@ -1,0 +1,44 @@
+id = "performance_10"
+area = "performance"
+deps = []
+prompt = '''
+`wordcount` creates an untyped `Dict()`, so its return type is not concrete and each update is slow. Fix it so the result is a concretely typed `Dict{K,Int}` where `K` is the element type of the input (e.g. `Dict{String,Int}` for a `Vector{String}`), and inference can determine that type.
+
+```julia
+function wordcount(words)
+    counts = Dict()
+    for w in words
+        counts[w] = get(counts, w, 0) + 1
+    end
+    return counts
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+c = wordcount(["a", "b", "a"])
+@test c == Dict("a" => 2, "b" => 1)
+@test typeof(c) === Dict{String,Int}
+@test typeof(wordcount([:x, :y, :x])) === Dict{Symbol,Int}
+@test is_stable(wordcount, (Vector{String},))
+@test isempty(wordcount(String[]))
+'''
+reference = '''
+function wordcount(words)
+    counts = Dict{eltype(words),Int}()
+    for w in words
+        counts[w] = get(counts, w, 0) + 1
+    end
+    return counts
+end
+'''
+negative = '''
+function wordcount(words)
+    counts = Dict()
+    for w in words
+        counts[w] = get(counts, w, 0) + 1
+    end
+    return counts
+end
+'''

@@ -1,0 +1,28 @@
+id = "performance_09"
+area = "performance"
+deps = []
+prompt = '''
+`sumsqdiff(x, y)` computes the sum of squared differences but allocates a temporary array. Rewrite it with zero allocations. It must keep throwing `DimensionMismatch` when the vectors have different lengths (a plain `zip` would silently truncate) and keep `Float32` input as `Float32`.
+
+```julia
+sumsqdiff(x, y) = sum(abs2, x .- y)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+x = rand(1000); y = rand(1000)
+@test sumsqdiff(x, y) ≈ sum(abs2, x .- y)
+@test sumsqdiff(Float32[1, 2], Float32[0, 0]) === 5.0f0
+@test_throws DimensionMismatch sumsqdiff(zeros(3), zeros(4))
+@test alloc_of(sumsqdiff, x, y) == 0
+'''
+reference = '''
+function sumsqdiff(x, y)
+    axes(x) == axes(y) || throw(DimensionMismatch("x and y must have the same axes: $(axes(x)) vs $(axes(y))"))
+    return sum(abs2(a - b) for (a, b) in zip(x, y))
+end
+'''
+negative = '''
+sumsqdiff(x, y) = sum(abs2, x .- y)
+'''

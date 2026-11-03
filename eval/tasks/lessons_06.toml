@@ -1,0 +1,29 @@
+id = "lessons_06"
+area = "lessons"
+deps = []
+prompt = '''
+Write `sample_var(x::AbstractVector)`, the unbiased sample variance of `x` (divisor `n - 1`), computed without calling `Statistics`. It must be accurate for data with a large mean and small spread, such as `1e9 .+ [1.0, 2.0, 3.0, 4.0]`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test sample_var(1e9 .+ [1.0, 2.0, 3.0, 4.0]) ≈ 5 / 3 rtol = 1e-9
+@test sample_var([1.0, 2.0, 3.0, 4.0]) ≈ 5 / 3
+@test sample_var(Float32[1, 2, 3, 4]) isa Float32
+@test sample_var(fill(1e9, 10)) == 0
+'''
+reference = '''
+function sample_var(x::AbstractVector)
+    n = length(x)
+    m = sum(x) / n
+    return sum(v -> abs2(v - m), x) / (n - 1)
+end
+'''
+negative = '''
+function sample_var(x::AbstractVector)
+    n = length(x)
+    s = sum(x)
+    q = sum(abs2, x)
+    return (q - s^2 / n) / (n - 1)
+end
+'''

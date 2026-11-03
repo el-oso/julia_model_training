@@ -1,0 +1,27 @@
+id = "strings_io_dates_08"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+`count_chars` is meant to return the number of user-perceived characters (extended grapheme clusters) in a string, but `length` counts Unicode code points. Fix it: `"éa"` (an `e` plus a combining accent, then `a`) has 2, a family emoji built with zero-width joiners has 1, and two regional-indicator flags have 2.
+
+```julia
+count_chars(s) = length(s)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test count_chars("abc") == 3
+@test count_chars("") == 0
+@test count_chars("éa") == 2
+@test count_chars("👨‍👩‍👧") == 1
+@test count_chars("🇯🇵🇺🇸") == 2
+@test count_chars("héllo") == 5
+'''
+reference = '''
+using Unicode
+count_chars(s) = length(Unicode.graphemes(s))
+'''
+negative = '''
+count_chars(s) = length(s)
+'''

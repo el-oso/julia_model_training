@@ -1,0 +1,35 @@
+id = "performance_05"
+area = "performance"
+deps = []
+prompt = '''
+Power iteration calls `power_step` thousands of times and it allocates two fresh vectors per call. Write `power_step!(y, A, x)` that stores `normalize(A * x)` (2-norm) into the preallocated `y`, returns `y`, and performs zero allocations for dense `Float64` inputs. Keep `power_step` as a thin allocating wrapper if you like.
+
+```julia
+using LinearAlgebra
+power_step(A, x) = (y = A * x; y ./ norm(y))
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using LinearAlgebra
+A = rand(50, 50); x = rand(50); y = similar(x)
+@test power_step!(y, A, x) === y
+@test y ≈ normalize(A * x)
+@test alloc_of(power_step!, y, A, x) == 0
+'''
+reference = '''
+using LinearAlgebra
+
+function power_step!(y, A, x)
+    mul!(y, A, x)
+    y ./= norm(y)
+    return y
+end
+power_step(A, x) = power_step!(similar(x, float(eltype(x))), A, x)
+'''
+negative = '''
+using LinearAlgebra
+power_step(A, x) = (y = A * x; y ./ norm(y))
+power_step!(y, A, x) = (y .= power_step(A, x); y)
+'''

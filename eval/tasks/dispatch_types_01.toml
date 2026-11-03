@@ -1,0 +1,37 @@
+id = "dispatch_types_01"
+area = "dispatch_types"
+deps = []
+prompt = '''
+`Point` has abstractly typed fields, so every field access is dynamically typed and instances are boxed. Redesign it as a parametric struct with a single type parameter `T<:Real` shared by both fields. `Point(1, 2.5)` must promote and give a `Point{Float64}`; `Point(1f0, 2f0)` must stay `Point{Float32}`. Constructing from `Float64`s must infer concretely.
+
+```julia
+struct Point
+    x::Real
+    y::Real
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+p = Point(1.0, 2.0)
+@test all(isconcretetype, fieldtypes(typeof(p)))
+@test typeof(p) === Point{Float64}
+@test typeof(Point(1f0, 2f0)) === Point{Float32}
+@test typeof(Point(1, 2.5)) === Point{Float64}
+@test typeof(Point(1, 2)) === Point{Int}
+@test is_stable(Point, (Float64, Float64))
+'''
+reference = '''
+struct Point{T<:Real}
+    x::T
+    y::T
+end
+Point(x, y) = Point(promote(x, y)...)
+'''
+negative = '''
+struct Point
+    x::Real
+    y::Real
+end
+'''

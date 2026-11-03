@@ -1,0 +1,57 @@
+id = "strings_io_dates_05"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+`parse_csv_line` splits on every comma, so it mangles quoted fields. Write a version that follows the common CSV rules for a single line: fields are separated by commas; a field may be wrapped in double quotes, in which case commas inside are literal and `""` stands for one `"`. Empty fields are kept, and `""` (empty line) gives `[""]`. Return a `Vector` of strings.
+
+```julia
+parse_csv_line(line) = split(line, ',')
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test parse_csv_line("a,b,c") == ["a", "b", "c"]
+@test parse_csv_line("a,\"b,c\",d") == ["a", "b,c", "d"]
+@test parse_csv_line("\"say \"\"hi\"\"\",x") == ["say \"hi\"", "x"]
+@test parse_csv_line("a,,b") == ["a", "", "b"]
+@test parse_csv_line("") == [""]
+@test parse_csv_line("a,") == ["a", ""]
+@test parse_csv_line("\"é,ü\",ñ") == ["é,ü", "ñ"]
+'''
+reference = '''
+function parse_csv_line(line::AbstractString)
+    fields = String[]
+    buf = IOBuffer()
+    inquotes = false
+    chars = collect(line)
+    i = 1
+    while i <= length(chars)
+        c = chars[i]
+        if inquotes
+            if c == '"'
+                if i < length(chars) && chars[i+1] == '"'
+                    write(buf, '"')
+                    i += 1
+                else
+                    inquotes = false
+                end
+            else
+                write(buf, c)
+            end
+        elseif c == '"'
+            inquotes = true
+        elseif c == ','
+            push!(fields, String(take!(buf)))
+        else
+            write(buf, c)
+        end
+        i += 1
+    end
+    push!(fields, String(take!(buf)))
+    return fields
+end
+'''
+negative = '''
+parse_csv_line(line) = split(line, ',')
+'''

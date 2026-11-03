@@ -1,0 +1,48 @@
+id = "linalg_sparse_02"
+area = "linalg_sparse"
+deps = []
+prompt = '''
+`second_diff(n)` builds the `n x n` second-difference matrix (`-2` on the diagonal, `1` on the two neighboring diagonals) as a dense matrix, which wastes memory and time for large `n`. Return a structured or sparse representation instead (it must remain usable as a matrix, including `\`), so that `Base.summarysize(second_diff(2000))` is under 200 kB.
+
+```julia
+function second_diff(n)
+    D = zeros(n, n)
+    for i in 1:n
+        D[i, i] = -2.0
+        i > 1 && (D[i, i-1] = 1.0)
+        i < n && (D[i, i+1] = 1.0)
+    end
+    return D
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using LinearAlgebra
+D = second_diff(2000)
+@test Base.summarysize(D) < 200_000
+@test !(D isa Matrix)
+S = second_diff(5)
+@test size(S) == (5, 5)
+@test Matrix(S) == [-2 1 0 0 0; 1 -2 1 0 0; 0 1 -2 1 0; 0 0 1 -2 1; 0 0 0 1 -2]
+b = collect(1.0:5.0)
+@test S \ b ≈ Matrix(S) \ b
+@test S * b ≈ Matrix(S) * b
+@test S[2, 2] == -2 && S[1, 5] == 0
+'''
+reference = '''
+using LinearAlgebra
+second_diff(n) = Tridiagonal(ones(n - 1), fill(-2.0, n), ones(n - 1))
+'''
+negative = '''
+function second_diff(n)
+    D = zeros(n, n)
+    for i in 1:n
+        D[i, i] = -2.0
+        i > 1 && (D[i, i-1] = 1.0)
+        i < n && (D[i, i+1] = 1.0)
+    end
+    return D
+end
+'''

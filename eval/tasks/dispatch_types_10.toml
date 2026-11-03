@@ -1,0 +1,41 @@
+id = "dispatch_types_10"
+area = "dispatch_types"
+deps = []
+prompt = '''
+A new subtype that forgets to implement `area` currently produces a bare `MethodError`. Add a fallback so that calling `area` on such a subtype fails fast with an `ArgumentError` whose message is exactly `area is not implemented for <TypeName>` (e.g. `area is not implemented for Blob`). The `Circle` method must remain concretely typed.
+
+```julia
+abstract type AbstractShape end
+
+struct Circle <: AbstractShape
+    r::Float64
+end
+area(c::Circle) = pi * c.r^2
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+struct Blob <: AbstractShape end
+@test area(Circle(1.0)) ≈ pi
+@test_throws "area is not implemented for Blob" area(Blob())
+@test_throws ArgumentError area(Blob())
+@test rtype(area, (Circle,)) === Float64
+'''
+reference = '''
+abstract type AbstractShape end
+
+struct Circle <: AbstractShape
+    r::Float64
+end
+area(c::Circle) = pi * c.r^2
+area(s::AbstractShape) = throw(ArgumentError("area is not implemented for $(nameof(typeof(s)))"))
+'''
+negative = '''
+abstract type AbstractShape end
+
+struct Circle <: AbstractShape
+    r::Float64
+end
+area(c::Circle) = pi * c.r^2
+'''

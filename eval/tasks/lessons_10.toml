@@ -1,0 +1,54 @@
+id = "lessons_10"
+area = "lessons"
+deps = []
+prompt = '''
+Write `golden_min(f, a, b; tol = 1e-8)` that minimizes a unimodal function on `[a, b]` by golden-section search and returns the minimizer. The objective `f` is expensive: it may be called at most 50 times in total for `f(x) = (x - 1)^2` on `[0, 4]` with the default tolerance.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+calls = Ref(0)
+f(x) = (calls[] += 1; (x - 1)^2)
+x = golden_min(f, 0.0, 4.0)
+@test abs(x - 1) < 1e-5
+@test calls[] <= 50
+calls[] = 0
+y = golden_min(f, -3.0, 10.0; tol = 1e-4)
+@test abs(y - 1) < 1e-3
+@test calls[] <= 30
+'''
+reference = '''
+function golden_min(f, a, b; tol = 1e-8)
+    invphi = (sqrt(5) - 1) / 2
+    c = b - invphi * (b - a)
+    d = a + invphi * (b - a)
+    fc, fd = f(c), f(d)
+    while b - a > tol
+        if fc < fd
+            b, d, fd = d, c, fc
+            c = b - invphi * (b - a)
+            fc = f(c)
+        else
+            a, c, fc = c, d, fd
+            d = a + invphi * (b - a)
+            fd = f(d)
+        end
+    end
+    return (a + b) / 2
+end
+'''
+negative = '''
+function golden_min(f, a, b; tol = 1e-8)
+    invphi = (sqrt(5) - 1) / 2
+    while b - a > tol
+        c = b - invphi * (b - a)
+        d = a + invphi * (b - a)
+        if f(c) < f(d)
+            b = d
+        else
+            a = c
+        end
+    end
+    return (a + b) / 2
+end
+'''

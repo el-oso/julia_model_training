@@ -1,0 +1,26 @@
+id = "strings_io_dates_02"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+`capitalize` breaks on non-ASCII text (`capitalize("élan")` throws `StringIndexError`) and on the empty string. Fix both. It must return a `String` whose first character is uppercased and whose remainder is unchanged, and accept any `AbstractString`.
+
+```julia
+capitalize(s::String) = uppercase(s[1:1]) * s[2:end]
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test capitalize("élan") == "Élan"
+@test capitalize("") == ""
+@test capitalize("x") == "X"
+@test capitalize("hello World") == "Hello World"
+@test capitalize(SubString("élan vital", 1, 5)) == "Élan"
+@test capitalize("ünï") isa String
+'''
+reference = '''
+capitalize(s::AbstractString) = uppercasefirst(String(s))
+'''
+negative = '''
+capitalize(s::String) = uppercase(s[1:1]) * s[2:end]
+'''

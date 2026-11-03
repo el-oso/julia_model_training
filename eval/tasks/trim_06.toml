@@ -1,0 +1,26 @@
+id = "trim_06"
+area = "trim"
+deps = []
+prompt = '''
+`apply_all` iterates over a `Vector{Function}`, so each call is dynamically dispatched, which `juliac --trim=safe` rejects. Rewrite it so that every call is resolved statically (hint: iterate a tuple of functions), keeping the result.
+
+```julia
+const FUNCS = Function[sin, cos, tan]
+apply_all(x::Float64) = sum(f(x) for f in FUNCS)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test apply_all(0.3) ≈ sin(0.3) + cos(0.3) + tan(0.3)
+@test rtype(apply_all, (Float64,)) === Float64
+@test isempty(dynamic_calls(apply_all, (Float64,)))
+'''
+reference = '''
+const FUNCS = (sin, cos, tan)
+apply_all(x::Float64) = sum(f -> f(x), FUNCS)
+'''
+negative = '''
+const FUNCS = Function[sin, cos, tan]
+apply_all(x::Float64) = sum(f(x) for f in FUNCS)
+'''

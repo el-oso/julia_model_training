@@ -1,0 +1,33 @@
+id = "performance_06"
+area = "performance"
+deps = []
+prompt = '''
+`count_above` is slow: the closure mutates a captured variable, which is boxed, so the return type is `Any` and every call allocates. Rewrite it so the inferred return type is concrete and a call on a `Vector{Float64}` allocates nothing.
+
+```julia
+function count_above(v, t)
+    c = 0
+    foreach(x -> x > t && (c += 1), v)
+    return c
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+v = collect(0.0:999.0)
+@test count_above(v, 499.5) == 500
+@test count_above(Float64[], 1.0) == 0
+@test is_stable(count_above, (Vector{Float64}, Float64))
+@test alloc_of(count_above, v, 10.0) == 0
+'''
+reference = '''
+count_above(v, t) = count(>(t), v)
+'''
+negative = '''
+function count_above(v, t)
+    c = 0
+    foreach(x -> x > t && (c += 1), v)
+    return c
+end
+'''

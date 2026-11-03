@@ -1,0 +1,31 @@
+id = "metaprogramming_06"
+area = "metaprogramming"
+deps = []
+prompt = '''
+Define the five functions `add1`, `add2`, `add3`, `add4`, `add5` (where `addN(x) = x + N`) without writing five separate definitions: use a loop with `@eval` and interpolate the function name and the constant. Each function must end up with a single method and work for any number.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test add1(1) == 2
+@test add3(1) == 4
+@test add5(0) == 5
+@test add2(1.5) == 3.5
+@test add4(big(1)) == 5
+for f in (add1, add2, add3, add4, add5)
+    @test length(methods(f)) == 1
+end
+@test !isdefined(@__MODULE__, :add6)
+@test occursin("@eval", SOLUTION_SOURCE)
+'''
+reference = '''
+for n in 1:5
+    name = Symbol(:add, n)
+    @eval $name(x) = x + $n
+end
+'''
+negative = '''
+add1(x) = x + 1
+add2(x) = x + 2
+add3(x) = x + 3
+'''

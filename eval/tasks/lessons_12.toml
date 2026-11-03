@@ -1,0 +1,41 @@
+id = "lessons_12"
+area = "lessons"
+deps = ["OffsetArrays"]
+prompt = '''
+Write `running_max(v::AbstractVector)` returning a vector of the same axes as `v` whose entry at each index is the maximum of `v` from its first element up to that index. It must work for arrays with arbitrary (non-1-based) indices.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test running_max([3, 1, 4, 1, 5]) == [3, 3, 4, 4, 5]
+o = OffsetArray([3, 1, 4, 1, 5], -2:2)
+r = running_max(o)
+@test axes(r) == axes(o)
+@test collect(r) == [3, 3, 4, 4, 5]
+@test running_max(view([9, 3, 7, 1], 2:4)) == [3, 7, 7]
+@test running_max(Int[]) == Int[]
+'''
+reference = '''
+function running_max(v::AbstractVector)
+    out = similar(v)
+    isempty(v) && return out
+    m = v[firstindex(v)]
+    for i in eachindex(v)
+        m = max(m, v[i])
+        out[i] = m
+    end
+    return out
+end
+'''
+negative = '''
+function running_max(v::AbstractVector)
+    out = similar(v)
+    isempty(v) && return out
+    m = v[1]
+    for i in 1:length(v)
+        m = max(m, v[i])
+        out[i] = m
+    end
+    return out
+end
+'''

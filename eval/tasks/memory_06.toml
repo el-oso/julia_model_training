@@ -1,0 +1,59 @@
+id = "memory_06"
+area = "memory"
+deps = []
+prompt = '''
+`primes_mask(n)` returns a sieve of Eratosthenes as a `Vector{Bool}` (one byte per entry). Make it use one bit per entry so that `Base.summarysize(primes_mask(10^6))` is below 250 kB, while `mask[k]` stays `true` exactly when `k` is prime (`mask[1]` is `false`).
+
+```julia
+function primes_mask(n)
+    mask = fill(true, n)
+    mask[1] = false
+    for i in 2:isqrt(n)
+        if mask[i]
+            for j in i*i:i:n
+                mask[j] = false
+            end
+        end
+    end
+    return mask
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+m = primes_mask(10^6)
+@test length(m) == 10^6
+@test count(m) == 78498
+@test !m[1] && m[2] && m[3] && !m[4] && m[97]
+@test Base.summarysize(m) < 250_000
+@test findall(primes_mask(30)) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+'''
+reference = '''
+function primes_mask(n)
+    mask = trues(n)
+    mask[1] = false
+    for i in 2:isqrt(n)
+        if mask[i]
+            for j in i*i:i:n
+                mask[j] = false
+            end
+        end
+    end
+    return mask
+end
+'''
+negative = '''
+function primes_mask(n)
+    mask = fill(true, n)
+    mask[1] = false
+    for i in 2:isqrt(n)
+        if mask[i]
+            for j in i*i:i:n
+                mask[j] = false
+            end
+        end
+    end
+    return mask
+end
+'''

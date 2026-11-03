@@ -1,0 +1,29 @@
+id = "memory_02"
+area = "memory"
+deps = []
+prompt = '''
+`gram(A) = A' * A` allocates a result matrix on each call. Write `gram!(C, A)` that stores `A'A` in the preallocated `C` and returns `C` using `LinearAlgebra.mul!`, with zero allocations for dense `Float64` matrices.
+
+```julia
+gram(A) = A' * A
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+A = rand(20, 8); C = zeros(8, 8)
+@test gram!(C, A) === C
+@test C ≈ A' * A
+@test alloc_of(gram!, C, A) == 0
+'''
+reference = '''
+using LinearAlgebra
+function gram!(C, A)
+    mul!(C, A', A)
+    return C
+end
+'''
+negative = '''
+gram(A) = A' * A
+gram!(C, A) = (C .= gram(A); C)
+'''

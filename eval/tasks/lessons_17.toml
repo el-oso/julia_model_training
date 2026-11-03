@@ -1,0 +1,41 @@
+id = "lessons_17"
+area = "lessons"
+deps = []
+prompt = '''
+Write `scale_rows!(A::Matrix{Float64}, s::Vector{Float64})` multiplying row `i` of `A` by `s[i]` in place, with explicit loops and no temporary arrays. Make it cache-friendly for Julia's column-major arrays.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+A = reshape(collect(1.0:6.0), 2, 3)
+scale_rows!(A, [10.0, 100.0])
+@test A == [10.0 30.0 50.0; 200.0 400.0 600.0]
+function good!(A, s)
+    for j in axes(A, 2), i in axes(A, 1)
+        A[i, j] *= s[i]
+    end
+    return A
+end
+B = rand(4000, 4000); s = rand(4000)
+good!(B, s); scale_rows!(B, s)
+tg = minimum(@elapsed(good!(B, s)) for _ in 1:5)
+ts = minimum(@elapsed(scale_rows!(B, s)) for _ in 1:5)
+@test ts < 1.7 * tg
+@test alloc_of(scale_rows!, B, s) < 200
+'''
+reference = '''
+function scale_rows!(A::Matrix{Float64}, s::Vector{Float64})
+    for j in axes(A, 2), i in axes(A, 1)
+        A[i, j] *= s[i]
+    end
+    return A
+end
+'''
+negative = '''
+function scale_rows!(A::Matrix{Float64}, s::Vector{Float64})
+    for i in axes(A, 1), j in axes(A, 2)
+        A[i, j] *= s[i]
+    end
+    return A
+end
+'''

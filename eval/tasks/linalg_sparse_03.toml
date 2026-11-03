@@ -1,0 +1,29 @@
+id = "linalg_sparse_03"
+area = "linalg_sparse"
+deps = []
+prompt = '''
+`fit` solves least squares through the normal equations with an explicit inverse, which squares the condition number and loses most digits on ill-conditioned problems (for example a degree-11 monomial Vandermonde matrix). Rewrite it so it is accurate: it must recover coefficients of a noiseless polynomial fit to better than `1e-5` relative error.
+
+```julia
+fit(X, y) = inv(X' * X) * (X' * y)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using LinearAlgebra
+t = range(0, 1; length = 60)
+X = [ti^j for ti in t, j in 0:11]
+beta = collect(1.0:12.0)
+y = X * beta
+b = fit(X, y)
+@test norm(b - beta) / norm(beta) < 1e-5
+Xs = rand(30, 3); bs = [1.0, -2.0, 0.5]
+@test fit(Xs, Xs * bs) ≈ bs
+'''
+reference = '''
+fit(X, y) = X \ y
+'''
+negative = '''
+fit(X, y) = inv(X' * X) * (X' * y)
+'''

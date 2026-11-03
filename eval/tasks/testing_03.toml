@@ -1,0 +1,66 @@
+id = "testing_03"
+area = "testing"
+deps = []
+prompt = '''
+Specification of `parse_port(s::AbstractString)::Int`: the string must consist only of the ASCII digits 0-9 (no sign, no whitespace, not empty) and its value must be in 1..65535; anything else throws `ArgumentError`. Write `port_tests(f)::Bool`, a test-suite that decides whether a candidate `f` conforms: it returns `true` for a conforming implementation and `false` (never throwing) if `f` returns a wrong value, accepts an invalid string, rejects a valid one, or throws something other than `ArgumentError` for invalid input. Cover the boundaries (0, 1, 65535, 65536), signs, whitespace, empty, non-digits, and a value too large for `Int`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+function good(s)
+    (!isempty(s) && all(c -> '0' <= c <= '9', s)) || throw(ArgumentError("invalid port: $s"))
+    n = tryparse(Int, s)
+    (isnothing(n) || !(1 <= n <= 65535)) && throw(ArgumentError("port out of range: $s"))
+    return n
+end
+function mutant(; lo = 1, hi = 65535, strict = true, plus = false, ws = false, off = 0, exc = ArgumentError, empty0 = false)
+    return function (s)
+        if empty0 && isempty(s)
+            return 0
+        end
+        t = ws ? strip(s) : s
+        ok = !isempty(t) && all(c -> '0' <= c <= '9', t)
+        if plus && startswith(t, "+")
+            t = t[2:end]
+            ok = !isempty(t) && all(c -> '0' <= c <= '9', t)
+        end
+        n = ok ? tryparse(Int, t) : nothing
+        (isnothing(n) || !(lo <= n <= hi)) && throw(exc("invalid port"))
+        return n + off
+    end
+end
+@test port_tests(good)
+@test port_tests(mutant())
+@test !port_tests(mutant(lo = 0))
+@test !port_tests(mutant(hi = 65534))
+@test !port_tests(mutant(hi = 65536))
+@test !port_tests(mutant(plus = true))
+@test !port_tests(mutant(ws = true))
+@test !port_tests(mutant(off = 1))
+@test !port_tests(mutant(exc = ErrorException))
+@test !port_tests(mutant(empty0 = true, lo = 0))
+@test !port_tests(s -> error("always fails"))
+'''
+reference = '''
+function port_tests(f)
+    try
+        for (s, v) in ("80" => 80, "1" => 1, "65535" => 65535, "8080" => 8080)
+            f(s) === v || return false
+        end
+        for s in ("0", "65536", "", "abc", " 80", "80 ", "+80", "-1", "8o0", "99999999999999999999")
+            try
+                f(s)
+                return false
+            catch e
+                e isa ArgumentError || return false
+            end
+        end
+        return true
+    catch
+        return false
+    end
+end
+'''
+negative = '''
+port_tests(f) = true
+'''

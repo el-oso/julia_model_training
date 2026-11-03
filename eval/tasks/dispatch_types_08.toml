@@ -1,0 +1,41 @@
+id = "dispatch_types_08"
+area = "dispatch_types"
+deps = []
+prompt = '''
+`Meters` is a `Number` wrapper. Make mixed arithmetic work through Julia's promotion machinery (define `promote_rule` and `convert`; do not write one `+` method per combination): `Meters(2.0) + 3`, `3 + Meters(2.0)`, `Meters(1) + 2.5`, `Meters(1f0) + 2` must all give a `Meters` of the promoted element type.
+
+```julia
+struct Meters{T<:Real} <: Number
+    value::T
+end
+Base.:+(a::Meters, b::Meters) = Meters(a.value + b.value)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test Meters(2.0) + 3 === Meters(5.0)
+@test 3 + Meters(2.0) === Meters(5.0)
+@test Meters(1) + Meters(2.5) === Meters(3.5)
+@test Meters(1) + 2.5 === Meters(3.5)
+@test Meters(1f0) + 2 === Meters(3f0)
+@test promote_type(Meters{Int}, Float64) === Meters{Float64}
+@test convert(Meters{Float64}, 2) === Meters(2.0)
+@test count(m -> m.module === @__MODULE__, methods(+)) <= 1
+'''
+reference = '''
+struct Meters{T<:Real} <: Number
+    value::T
+end
+Base.:+(a::Meters, b::Meters) = Meters(a.value + b.value)
+Base.promote_rule(::Type{Meters{T}}, ::Type{S}) where {T<:Real,S<:Real} = Meters{promote_type(T, S)}
+Base.convert(::Type{Meters{T}}, x::Real) where {T<:Real} = Meters{T}(convert(T, x))
+Base.convert(::Type{Meters{T}}, x::Meters) where {T<:Real} = Meters{T}(convert(T, x.value))
+'''
+negative = '''
+struct Meters{T<:Real} <: Number
+    value::T
+end
+Base.:+(a::Meters, b::Meters) = Meters(a.value + b.value)
+Base.:+(a::Meters, b::Real) = Meters(a.value + b)
+'''

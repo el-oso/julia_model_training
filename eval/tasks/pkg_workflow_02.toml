@@ -1,0 +1,72 @@
+id = "pkg_workflow_02"
+area = "pkg_workflow"
+deps = []
+prompt = '''
+Write `set_compat(toml::String, name::String, bound::String)::String` that sets `name = "bound"` in the `[compat]` section of a `Project.toml` text: an existing entry for `name` is replaced in place, a missing one is added inside `[compat]`, and a missing `[compat]` section is created. Every other line is preserved verbatim, and the result must parse as TOML with the new compat entry in `d["compat"]`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using TOML
+base = """
+name = "Foo"
+uuid = "11111111-1111-1111-1111-111111111111"
+
+[deps]
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+
+[compat]
+julia = "1.10"
+JSON = "0.21"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c595fb3c57"
+
+[targets]
+test = ["Test"]
+"""
+d = TOML.parse(set_compat(base, "JSON", "0.21, 1"))
+@test d["compat"] == Dict("julia" => "1.10", "JSON" => "0.21, 1")
+@test d["extras"] == Dict("Test" => "8dfed614-e22c-5e08-85e1-65c595fb3c57")
+@test d["targets"] == Dict("test" => ["Test"])
+@test d["deps"] == Dict("JSON" => "682c06a0-de6a-54ab-a142-c8b1cf79cde6")
+d2 = TOML.parse(set_compat(base, "Test", "1"))
+@test d2["compat"] == Dict("julia" => "1.10", "JSON" => "0.21", "Test" => "1")
+@test d2["targets"] == Dict("test" => ["Test"])
+nocompat = "name = \"Foo\"\n\n[deps]\nJSON = \"682c06a0-de6a-54ab-a142-c8b1cf79cde6\"\n"
+d3 = TOML.parse(set_compat(nocompat, "julia", "1.10"))
+@test d3["compat"] == Dict("julia" => "1.10")
+@test d3["deps"] == Dict("JSON" => "682c06a0-de6a-54ab-a142-c8b1cf79cde6")
+@test count("JSON =", set_compat(base, "JSON", "1")) == 2
+'''
+reference = '''
+function set_compat(toml::String, name::String, bound::String)
+    lines = split(toml, '\n')
+    entry = "$name = \"$bound\""
+    isheader(l) = occursin(r"^\s*\[", l)
+    ci = findfirst(l -> strip(l) == "[compat]", lines)
+    if isnothing(ci)
+        while !isempty(lines) && isempty(strip(lines[end]))
+            pop!(lines)
+        end
+        return join([lines; ""; "[compat]"; entry; ""], '\n')
+    end
+    stop = something(findfirst(isheader, lines[ci+1:end]), length(lines) - ci + 1) + ci - 1
+    for i in ci+1:stop-1
+        m = match(r"^\s*([A-Za-z0-9_\"]+)\s*=", lines[i])
+        if !isnothing(m) && strip(m.captures[1], '"') == name
+            lines[i] = entry
+            return join(lines, '\n')
+        end
+    end
+    last = ci
+    for i in ci+1:stop-1
+        isempty(strip(lines[i])) || (last = i)
+    end
+    insert!(lines, last + 1, entry)
+    return join(lines, '\n')
+end
+'''
+negative = '''
+set_compat(toml::String, name::String, bound::String) = toml * "$name = \"$bound\"\n"
+'''

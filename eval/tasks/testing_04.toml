@@ -1,0 +1,52 @@
+id = "testing_04"
+area = "testing"
+deps = []
+prompt = '''
+Add a `@testset` that uses `@test_logs` to verify the logging behavior of `check_value`: one `@test_logs` call asserting that `check_value(-1)` emits exactly one warning-level message `"negative value"`, and another asserting that `check_value(1)` logs nothing (a `@test_logs` with no patterns). Include the definition of `check_value` in your block. The testset must pass.
+
+```julia
+function check_value(x)
+    x < 0 && @warn "negative value" x
+    return abs(x)
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+calls = Expr[]
+walk(ex) = ex isa Expr && (ex.head === :macrocall && ex.args[1] === Symbol("@test_logs") && push!(calls, ex); foreach(walk, ex.args))
+walk(Meta.parseall(SOLUTION_SOURCE))
+@test length(calls) >= 2
+nonline(c) = filter(a -> !(a isa LineNumberNode), c.args)
+@test any(c -> length(nonline(c)) == 2, calls)
+@test any(c -> any(a -> a isa Expr && a.head === :tuple && QuoteNode(:warn) in a.args && "negative value" in a.args, c.args), calls)
+@test occursin("@testset", SOLUTION_SOURCE)
+@test check_value(-2) == 2
+'''
+reference = '''
+using Test
+
+function check_value(x)
+    x < 0 && @warn "negative value" x
+    return abs(x)
+end
+
+@testset "check_value logging" begin
+    @test_logs (:warn, "negative value") check_value(-1)
+    @test_logs check_value(1)
+end
+'''
+negative = '''
+using Test
+
+function check_value(x)
+    x < 0 && @warn "negative value" x
+    return abs(x)
+end
+
+@testset "check_value" begin
+    @test check_value(-1) == 1
+    @test check_value(1) == 1
+end
+'''

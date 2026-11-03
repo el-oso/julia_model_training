@@ -1,0 +1,36 @@
+id = "performance_08"
+area = "performance"
+deps = []
+prompt = '''
+`squares_upto` returns a `Vector{Any}` and is type-unstable. Make it return a concretely typed vector (here `Vector{Int}`), including for `n = 0`, without changing the results.
+
+```julia
+function squares_upto(n)
+    out = []
+    for i in 1:n
+        push!(out, i^2)
+    end
+    return out
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test squares_upto(5) == [1, 4, 9, 16, 25]
+@test squares_upto(0) isa Vector{Int}
+@test squares_upto(3) isa Vector{Int}
+@test is_stable(squares_upto, (Int,))
+'''
+reference = '''
+squares_upto(n) = [i^2 for i in 1:n]
+'''
+negative = '''
+function squares_upto(n)
+    out = []
+    for i in 1:n
+        push!(out, i^2)
+    end
+    return out
+end
+'''

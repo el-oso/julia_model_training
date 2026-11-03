@@ -1,0 +1,47 @@
+id = "memory_05"
+area = "memory"
+deps = []
+prompt = '''
+`slow_square` memoizes into a global cache that grows without bound. Keep the global `CACHE` (a `Dict{Int,Int}`) and the function name, but make sure `CACHE` never holds more than 100 entries, however many distinct arguments are used. Results must stay correct.
+
+```julia
+const CACHE = Dict{Int,Int}()
+
+function slow_square(x::Int)
+    get!(CACHE, x) do
+        x * x
+    end
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test slow_square(7) == 49
+for i in 1:1000
+    @test slow_square(i) == i * i
+end
+@test length(CACHE) <= 100
+@test CACHE isa AbstractDict
+@test slow_square(1000) == 1_000_000
+@test slow_square(3) == 9
+@test length(CACHE) <= 100
+'''
+reference = '''
+const CACHE = Dict{Int,Int}()
+
+function slow_square(x::Int)
+    haskey(CACHE, x) && return CACHE[x]
+    length(CACHE) >= 100 && empty!(CACHE)
+    return CACHE[x] = x * x
+end
+'''
+negative = '''
+const CACHE = Dict{Int,Int}()
+
+function slow_square(x::Int)
+    get!(CACHE, x) do
+        x * x
+    end
+end
+'''

@@ -1,0 +1,31 @@
+id = "memory_04"
+area = "memory"
+deps = []
+prompt = '''
+`make_identity(n)` materializes a dense `n x n` matrix, which is 32 MB for `n = 2000`. Return a lightweight structured identity instead (it must still behave as a matrix: `size`, indexing, and matrix-vector products) so that `Base.summarysize(make_identity(2000))` is under 100 kB.
+
+```julia
+using LinearAlgebra
+make_identity(n) = Matrix(1.0I, n, n)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+using LinearAlgebra
+M = make_identity(2000)
+@test Base.summarysize(M) < 100_000
+@test size(M) == (2000, 2000)
+@test M[5, 5] == 1 && M[5, 6] == 0
+S = make_identity(3)
+@test S * [1.0, 2.0, 3.0] == [1.0, 2.0, 3.0]
+@test Matrix(S) == Matrix(1.0I, 3, 3)
+'''
+reference = '''
+using LinearAlgebra
+make_identity(n) = Diagonal(ones(n))
+'''
+negative = '''
+using LinearAlgebra
+make_identity(n) = Matrix(1.0I, n, n)
+'''

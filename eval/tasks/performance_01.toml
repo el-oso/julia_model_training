@@ -1,0 +1,45 @@
+id = "performance_01"
+area = "performance"
+deps = []
+prompt = '''
+This function is type-unstable (`Base.return_types` shows a `Union`). Fix it so the result type is concrete for any real element type: `Float32` input must give `Float32`, an empty `Float64` vector must give `0.0`, and integer input gives `Float64` (because of the `/ 2`).
+
+```julia
+function halfsum(v)
+    s = 0
+    for x in v
+        s += x / 2
+    end
+    return s
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test is_stable(halfsum, (Vector{Float64},))
+@test is_stable(halfsum, (Vector{Float32},))
+@test is_stable(halfsum, (Vector{Int},))
+@test halfsum(Float32[1, 2, 3]) isa Float32
+@test halfsum(Float64[]) === 0.0
+@test halfsum([1, 2, 3]) === 3.0
+@test halfsum(1:4) === 5.0
+'''
+reference = '''
+function halfsum(v)
+    s = zero(eltype(v)) / 2
+    for x in v
+        s += x / 2
+    end
+    return s
+end
+'''
+negative = '''
+function halfsum(v)
+    s = 0
+    for x in v
+        s += x / 2
+    end
+    return s
+end
+'''

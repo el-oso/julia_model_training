@@ -1,0 +1,41 @@
+id = "lessons_14"
+area = "lessons"
+deps = []
+prompt = '''
+Write `running_min(v::AbstractVector)` returning a new vector `out` with `out[i] = minimum(v[1:i])`, computed in one pass, starting from the largest representable value of the element type (not from the first element). It must work for `Int`, `Float32` and `Rational{Int}` inputs and return the same element type.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test running_min([5, 3, 4, 1]) == [5, 3, 3, 1]
+r = running_min([5, 3, 4, 1])
+@test eltype(r) === Int
+f = running_min(Float32[2, 1, 3])
+@test eltype(f) === Float32 && f == Float32[2, 1, 1]
+q = running_min([3//2, 1//3, 5//1])
+@test eltype(q) === Rational{Int} && q == [3//2, 1//3, 1//3]
+@test running_min(Int[]) == Int[]
+'''
+reference = '''
+function running_min(v::AbstractVector)
+    T = eltype(v)
+    out = similar(v, T)
+    m = typemax(T)
+    for i in eachindex(v)
+        m = min(m, v[i])
+        out[i] = m
+    end
+    return out
+end
+'''
+negative = '''
+function running_min(v::AbstractVector)
+    out = fill(Inf, length(v))
+    m = Inf
+    for i in 1:length(v)
+        m = min(m, v[i])
+        out[i] = m
+    end
+    return out
+end
+'''

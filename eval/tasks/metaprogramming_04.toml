@@ -1,0 +1,32 @@
+id = "metaprogramming_04"
+area = "metaprogramming"
+deps = []
+prompt = '''
+Write a macro `@vars_string a b c` that expands to an expression producing the `String` `"a = 1, b = \"x\", c = 3.5"`: each variable name, ` = `, and `repr` of its current value, joined with `", "`. It must work on local variables of the calling function.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+function h()
+    alpha = 1; beta = "x"; gamma = 3.5
+    return @vars_string alpha beta gamma
+end
+@test h() == "alpha = 1, beta = \"x\", gamma = 3.5"
+function h2(n)
+    return @vars_string n
+end
+@test h2(7) == "n = 7"
+@test (@macroexpand @vars_string a b) isa Expr
+'''
+reference = '''
+macro vars_string(vars...)
+    parts = [:($(string(v)) * " = " * repr($(esc(v)))) for v in vars]
+    return :(join([$(parts...)], ", "))
+end
+'''
+negative = '''
+macro vars_string(vars...)
+    parts = [:($(string(v)) * " = " * repr($v)) for v in vars]
+    return :(join([$(parts...)], ", "))
+end
+'''

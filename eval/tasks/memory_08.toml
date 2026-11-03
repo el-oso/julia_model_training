@@ -1,0 +1,27 @@
+id = "memory_08"
+area = "memory"
+deps = []
+prompt = '''
+`column` returns a copy of a matrix column. Change it to return a view so that no data is copied and later modifications of the matrix are visible through the returned object. It should return a `SubArray`.
+
+```julia
+column(A::AbstractMatrix, j::Integer) = A[:, j]
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+A = rand(1000, 5)
+c = column(A, 2)
+@test c isa SubArray
+@test c == A[:, 2]
+A[1, 2] = 99.0
+@test c[1] == 99.0
+@test alloc_of(column, A, 2) < 200
+'''
+reference = '''
+column(A::AbstractMatrix, j::Integer) = view(A, :, j)
+'''
+negative = '''
+column(A::AbstractMatrix, j::Integer) = A[:, j]
+'''

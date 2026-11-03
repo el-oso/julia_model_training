@@ -1,0 +1,29 @@
+id = "dispatch_types_03"
+area = "dispatch_types"
+deps = []
+prompt = '''
+Calling `combine(1, 2)` throws an ambiguity `MethodError`. Add what is needed (without removing or changing the existing methods) so that `combine(1, 2)` returns `"both Int"`, while `combine(1, "x")` and `combine("x", 2)` keep their current results, and the module has no method ambiguities.
+
+```julia
+combine(a::Int, b) = "first is Int"
+combine(a, b::Int) = "second is Int"
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test combine(1, 2) == "both Int"
+@test combine(1, "x") == "first is Int"
+@test combine("x", 2) == "second is Int"
+@test_throws MethodError combine("x", "y")
+@test isempty(detect_ambiguities(@__MODULE__))
+'''
+reference = '''
+combine(a::Int, b) = "first is Int"
+combine(a, b::Int) = "second is Int"
+combine(a::Int, b::Int) = "both Int"
+'''
+negative = '''
+combine(a::Int, b) = "first is Int"
+combine(a, b::Int) = "second is Int"
+'''

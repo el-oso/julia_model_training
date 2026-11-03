@@ -1,0 +1,38 @@
+id = "debugging_02"
+area = "debugging"
+deps = []
+prompt = '''
+`normalized` modifies the caller's vector, and it throws an `InexactError` for integer input. Fix both: the argument must be left unchanged, and `normalized([3, 4])` must return `[0.6, 0.8]`.
+
+```julia
+function normalized(v)
+    n = sqrt(sum(abs2, v))
+    v ./= n
+    return v
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+v = [3.0, 4.0]
+w = normalized(v)
+@test v == [3.0, 4.0]
+@test w ≈ [0.6, 0.8]
+@test !(w === v)
+@test normalized([3, 4]) ≈ [0.6, 0.8]
+@test normalized(Float32[3, 4]) isa Vector{Float32}
+'''
+reference = '''
+function normalized(v)
+    n = sqrt(sum(abs2, v))
+    return v ./ n
+end
+'''
+negative = '''
+function normalized(v)
+    n = sqrt(sum(abs2, v))
+    v ./= n
+    return v
+end
+'''

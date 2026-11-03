@@ -1,0 +1,38 @@
+id = "expert_functional_04"
+area = "expert_functional"
+deps = []
+prompt = '''
+Write `sort_recs(recs)` for a vector of `Rec` values: sort by `score` descending, breaking ties by `name` ascending. It must return a new `Vector` without mutating its argument, and the sort must be deterministic.
+
+```julia
+struct Rec
+    name::String
+    score::Int
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+recs = [Rec("b", 5), Rec("a", 5), Rec("c", 9), Rec("d", 1), Rec("a", 7)]
+orig = copy(recs)
+s = sort_recs(recs)
+@test s == [Rec("c", 9), Rec("a", 7), Rec("a", 5), Rec("b", 5), Rec("d", 1)]
+@test recs == orig
+@test s isa Vector{Rec}
+@test sort_recs(Rec[]) == Rec[]
+'''
+reference = '''
+struct Rec
+    name::String
+    score::Int
+end
+sort_recs(recs) = sort(recs; by = r -> (-r.score, r.name))
+'''
+negative = '''
+struct Rec
+    name::String
+    score::Int
+end
+sort_recs(recs) = sort(recs; by = r -> r.score, rev = true)
+'''

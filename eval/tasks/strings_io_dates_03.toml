@@ -1,0 +1,43 @@
+id = "strings_io_dates_03"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+`join_lines` builds a string by repeated concatenation, which copies the whole string on every iteration (quadratic time and allocation). Rewrite it so that total allocation is linear in the output size. Output must be unchanged: every part followed by a newline, and `""` for no parts.
+
+```julia
+function join_lines(parts)
+    s = ""
+    for p in parts
+        s *= p * "\n"
+    end
+    return s
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+parts = ["line $i" for i in 1:5000]
+@test join_lines(parts) == join(parts, "\n") * "\n"
+@test join_lines(String[]) == ""
+@test join_lines(["a"]) == "a\n"
+@test alloc_of(join_lines, parts) < 500_000
+'''
+reference = '''
+function join_lines(parts)
+    io = IOBuffer()
+    for p in parts
+        print(io, p, '\n')
+    end
+    return String(take!(io))
+end
+'''
+negative = '''
+function join_lines(parts)
+    s = ""
+    for p in parts
+        s *= p * "\n"
+    end
+    return s
+end
+'''

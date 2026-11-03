@@ -1,0 +1,27 @@
+id = "performance_07"
+area = "performance"
+deps = []
+prompt = '''
+`sumsq` builds a temporary array just to sum it. Rewrite it so that it does not allocate, works for any iterable of numbers (ranges and views included), keeps the element type for `Float32` input, and returns zero for an empty vector.
+
+```julia
+sumsq(v) = sum([x^2 for x in v])
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+v = rand(1000)
+@test sumsq(v) ≈ sum(abs2, v)
+@test sumsq(1:10) == 385
+@test sumsq(view(v, 1:10)) ≈ sum(abs2, v[1:10])
+@test sumsq(Float32[1, 2]) === 5.0f0
+@test sumsq(Float64[]) === 0.0
+@test alloc_of(sumsq, v) == 0
+'''
+reference = '''
+sumsq(v) = sum(abs2, v)
+'''
+negative = '''
+sumsq(v) = sum([x^2 for x in v])
+'''

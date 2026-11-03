@@ -1,0 +1,34 @@
+id = "pkg_workflow_03"
+area = "pkg_workflow"
+deps = []
+prompt = '''
+Write `compat_allows(spec::String, v::VersionNumber)::Bool` that decides whether version `v` satisfies a Julia package `[compat]` specifier using Pkg's semantics: a bare `"1.2"` means `[1.2.0, 2.0.0)`, `"0.3"` means `[0.3.0, 0.4.0)`, `"0.0.3"` means exactly `0.0.3`, `"~1.2.3"` means `[1.2.3, 1.3.0)`, `"=1.2.3"` is exact, a comma-separated list is a union (`"1.2, 2.1"`), and `"1.2.3 - 1.4.5"` is an inclusive range.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test compat_allows("1.2", v"1.9.0")
+@test !compat_allows("1.2", v"2.0.0")
+@test !compat_allows("1.2", v"1.1.9")
+@test compat_allows("0.3", v"0.3.9")
+@test !compat_allows("0.3", v"0.4.0")
+@test compat_allows("0.0.3", v"0.0.3")
+@test !compat_allows("0.0.3", v"0.0.4")
+@test compat_allows("1.2, 2.1", v"2.5.0")
+@test compat_allows("1.2, 2.1", v"1.9.0")
+@test !compat_allows("1.2, 2.1", v"3.0.0")
+@test compat_allows("~1.2.3", v"1.2.9")
+@test !compat_allows("~1.2.3", v"1.3.0")
+@test !compat_allows("=1.2.3", v"1.2.4")
+@test compat_allows("=1.2.3", v"1.2.3")
+@test compat_allows("1.2.3 - 1.4.5", v"1.4.0")
+@test !compat_allows("1.2.3 - 1.4.5", v"1.4.6")
+@test compat_allows("0", v"0.5.0") && !compat_allows("0", v"1.0.0")
+'''
+reference = '''
+using Pkg
+compat_allows(spec::String, v::VersionNumber) = v in Pkg.Types.semver_spec(spec)
+'''
+negative = '''
+compat_allows(spec::String, v::VersionNumber) = v >= VersionNumber(replace(spec, r"[^0-9.]" => ""))
+'''

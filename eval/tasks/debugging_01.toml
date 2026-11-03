@@ -1,0 +1,26 @@
+id = "debugging_01"
+area = "debugging"
+deps = []
+prompt = '''
+Rows of the grid returned by `make_grid` are supposed to be independent, but writing to one row changes all of them. Fix the bug. The result must be a `Vector{Vector{Float64}}` with `n` rows of length `m`, all zeros.
+
+```julia
+make_grid(n, m) = fill(zeros(m), n)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+g = make_grid(3, 2)
+g[1][1] = 5.0
+@test g[2][1] == 0.0 && g[3][1] == 0.0
+@test g isa Vector{Vector{Float64}}
+@test length(g) == 3 && all(length(r) == 2 for r in g)
+@test all(all(iszero, r) for r in make_grid(2, 4))
+'''
+reference = '''
+make_grid(n, m) = [zeros(m) for _ in 1:n]
+'''
+negative = '''
+make_grid(n, m) = fill(zeros(m), n)
+'''

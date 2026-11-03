@@ -1,0 +1,33 @@
+id = "lessons_20"
+area = "lessons"
+deps = []
+prompt = '''
+Define `struct Bag{T}` wrapping a `Vector{T}` in a field `items`, with iteration (`iterate`, `length`) over its items. Declare its element type so that `eltype(Bag{Int})` and `eltype(Bag([1, 2]))` both return `Int`, and `collect(Bag([1, 2]))` is a `Vector{Int}`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+b = Bag([1, 2, 3])
+@test eltype(Bag{Int}) === Int
+@test eltype(b) === Int
+@test eltype(Bag{Float32}) === Float32
+@test collect(b) isa Vector{Int}
+@test collect(b) == [1, 2, 3]
+@test length(b) == 3
+'''
+reference = '''
+struct Bag{T}
+    items::Vector{T}
+end
+Base.iterate(b::Bag, st...) = iterate(b.items, st...)
+Base.length(b::Bag) = length(b.items)
+Base.eltype(::Type{Bag{T}}) where {T} = T
+'''
+negative = '''
+struct Bag{T}
+    items::Vector{T}
+end
+Base.iterate(b::Bag, st...) = iterate(b.items, st...)
+Base.length(b::Bag) = length(b.items)
+Base.eltype(b::Bag{T}) where {T} = T
+'''

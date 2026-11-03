@@ -1,0 +1,30 @@
+id = "lessons_18"
+area = "lessons"
+deps = []
+prompt = '''
+Write `after_first(s::AbstractString, sep::Char)` returning the part of `s` after the first occurrence of `sep` as a `String`, or `""` if `sep` does not occur. `sep` may be a non-ASCII character such as `'€'` or `'é'`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test after_first("a=b=c", '=') == "b=c"
+@test after_first("price€12€", '€') == "12€"
+@test after_first("café:ñandú", ':') == "ñandú"
+@test after_first("naïve", 'ï') == "ve"
+@test after_first("none", '€') == ""
+@test after_first("end€", '€') == ""
+'''
+reference = '''
+function after_first(s::AbstractString, sep::Char)
+    i = findfirst(==(sep), s)
+    i === nothing && return ""
+    return String(s[nextind(s, i):end])
+end
+'''
+negative = '''
+function after_first(s::AbstractString, sep::Char)
+    i = findfirst(==(sep), s)
+    i === nothing && return ""
+    return String(s[i+1:end])
+end
+'''

@@ -1,0 +1,24 @@
+id = "trim_04"
+area = "trim"
+deps = []
+prompt = '''
+`make_squares(n)` returns a tuple whose length depends on a run-time value, so its type is `Tuple{Vararg{Int}}`, which is not concrete. Provide `make_squares(::Val{N})` returning `(1, 4, ..., N^2)` so that the length is part of the type: `@inferred make_squares(Val(4))` must pass, with no dynamic dispatch.
+
+```julia
+make_squares(n::Int) = ntuple(i -> i^2, n)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test (@inferred make_squares(Val(4))) == (1, 4, 9, 16)
+@test make_squares(Val(1)) == (1,)
+@test rtype(make_squares, (Val{3},)) === NTuple{3,Int}
+@test isempty(dynamic_calls(make_squares, (Val{4},)))
+'''
+reference = '''
+make_squares(::Val{N}) where {N} = ntuple(i -> i^2, Val(N))
+'''
+negative = '''
+make_squares(n::Int) = ntuple(i -> i^2, n)
+'''

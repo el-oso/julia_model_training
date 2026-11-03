@@ -1,0 +1,29 @@
+id = "strings_io_dates_09"
+area = "strings_io_dates"
+deps = []
+prompt = '''
+Write `elapsed_hours(start::AbstractString, stop::AbstractString)::Float64` that takes two timestamps formatted like `"2024-03-15 14:30:00"` and returns the elapsed time in hours as a `Float64` (`"2024-03-15 14:30:00"` to `"2024-03-16 16:00:00"` is `25.5`). Use the `Dates` standard library; the result is negative if `stop` is before `start`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test elapsed_hours("2024-03-15 14:30:00", "2024-03-16 16:00:00") === 25.5
+@test elapsed_hours("2024-03-15 00:00:00", "2024-03-15 00:00:00") === 0.0
+@test elapsed_hours("2024-03-15 12:00:00", "2024-03-15 06:00:00") === -6.0
+@test elapsed_hours("2024-02-28 23:00:00", "2024-03-01 01:00:00") === 26.0
+@test elapsed_hours("2024-03-15 00:00:00", "2024-03-15 00:00:30") ≈ 30 / 3600
+'''
+reference = '''
+using Dates
+function elapsed_hours(start::AbstractString, stop::AbstractString)
+    fmt = dateformat"yyyy-mm-dd HH:MM:SS"
+    return Dates.value(DateTime(stop, fmt) - DateTime(start, fmt)) / 3_600_000
+end
+'''
+negative = '''
+using Dates
+function elapsed_hours(start::AbstractString, stop::AbstractString)
+    fmt = dateformat"yyyy-mm-dd HH:MM:SS"
+    return Dates.value(DateTime(stop, fmt) - DateTime(start, fmt)) / 3600
+end
+'''

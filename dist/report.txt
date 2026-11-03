@@ -1,0 +1,74 @@
+EXEC  base_stdlib.jsonl:38 block failed: DNSError: localhost, unknown node or service (EAI_NONAME)
+WARN  pi_agent.jsonl:102 long example (~2883 tokens)
+WARN  pi_agent.jsonl:103 long example (~2867 tokens)
+WARN  pi_agent.jsonl:104 long example (~2875 tokens)
+WARN  pi_agent_verify.jsonl:2 long example (~2783 tokens)
+WARN  pi_agent_verify.jsonl:3 long example (~2531 tokens)
+WARN  pi_agent_verify.jsonl:4 long example (~2549 tokens)
+WARN  pi_agent_verify.jsonl:6 long example (~3316 tokens)
+WARN  pi_agent_verify.jsonl:7 long example (~2798 tokens)
+WARN  pi_agent_verify.jsonl:8 long example (~2943 tokens)
+WARN  pi_agent_verify.jsonl:9 long example (~2835 tokens)
+WARN  pi_agent_verify.jsonl:10 long example (~2502 tokens)
+WARN  pi_agent_verify.jsonl:11 long example (~2791 tokens)
+WARN  pi_agent_verify.jsonl:12 long example (~2676 tokens)
+WARN  pi_agent_verify.jsonl:13 long example (~2895 tokens)
+WARN  pi_agent_verify.jsonl:14 long example (~2740 tokens)
+WARN  pi_agent_verify.jsonl:15 long example (~2554 tokens)
+WARN  pi_agent_verify.jsonl:16 long example (~2672 tokens)
+WARN  pi_agent_verify.jsonl:17 long example (~2562 tokens)
+WARN  pi_agent_verify.jsonl:18 long example (~2540 tokens)
+WARN  pi_agent_verify.jsonl:20 long example (~2795 tokens)
+WARN  pi_agent_verify.jsonl:21 long example (~2764 tokens)
+WARN  pi_agent_verify.jsonl:22 long example (~3672 tokens)
+WARN  pi_agent_verify.jsonl:23 long example (~2699 tokens)
+WARN  pi_agent_verify.jsonl:24 long example (~3518 tokens)
+WARN  pi_agent_verify2.jsonl:1 long example (~2739 tokens)
+WARN  pi_agent_verify2.jsonl:2 long example (~3104 tokens)
+WARN  pi_agent_verify2.jsonl:3 long example (~2995 tokens)
+WARN  pi_agent_verify2.jsonl:4 long example (~2845 tokens)
+WARN  pi_agent_verify2.jsonl:5 long example (~3173 tokens)
+WARN  pi_agent_verify2.jsonl:6 long example (~3115 tokens)
+WARN  pi_agent_verify2.jsonl:7 long example (~3278 tokens)
+WARN  pi_agent_verify2.jsonl:8 long example (~2846 tokens)
+WARN  pi_agent_verify2.jsonl:9 long example (~2691 tokens)
+WARN  pi_agent_verify2.jsonl:10 long example (~2570 tokens)
+WARN  pi_agent_verify2.jsonl:11 long example (~2969 tokens)
+WARN  pi_agent_verify2.jsonl:12 long example (~3963 tokens)
+WARN  pi_agent_verify2.jsonl:13 long example (~2798 tokens)
+WARN  pi_agent_verify2.jsonl:14 long example (~2781 tokens)
+WARN  pi_agent_verify2.jsonl:15 long example (~3409 tokens)
+WARN  pi_agent_verify2.jsonl:16 long example (~3112 tokens)
+WARN  pi_agent_verify2.jsonl:17 long example (~2635 tokens)
+WARN  pi_agent_verify2.jsonl:18 long example (~3176 tokens)
+WARN  pi_agent_verify2.jsonl:19 long example (~2529 tokens)
+WARN  pi_agent_verify2.jsonl:20 long example (~2796 tokens)
+WARN  pi_agent_verify2.jsonl:21 long example (~2815 tokens)
+WARN  pi_agent_verify2.jsonl:22 long example (~2941 tokens)
+WARN  pi_agent_verify2.jsonl:23 long example (~2735 tokens)
+WARN  pi_agent_verify2.jsonl:25 long example (~2945 tokens)
+WARN  pi_agent_verify2.jsonl:26 long example (~2783 tokens)
+WARN  pi_agent_verify2.jsonl:28 long example (~3302 tokens)
+WARN  pi_agent_verify2.jsonl:30 long example (~2754 tokens)
+WARN  pi_agent_verify2.jsonl:32 long example (~2859 tokens)
+WARN  pi_agent_verify2.jsonl:34 long example (~3514 tokens)
+WARN  pi_agent_verify2.jsonl:35 long example (~2595 tokens)
+WARN  pi_agent_verify2.jsonl:36 long example (~2698 tokens)
+WARN  pi_agent_verify2.jsonl:37 long example (~2827 tokens)
+WARN  pi_agent_verify2.jsonl:38 long example (~2860 tokens)
+EXEC  strings_io_dates.jsonl:1 block failed: StringIndexError: invalid index [3], valid nearby indices [2]=>'é', [4]=>'l'
+EXEC  strings_io_dates.jsonl:3 block failed: StringIndexError: invalid index [3], valid nearby indices [2]=>'é', [4]=>'l'
+EXEC  strings_io_dates.jsonl:10 block failed: ArgumentError: invalid base 10 digit 'x' in "12x"
+EXEC  strings_io_dates.jsonl:22 block failed: TypeError: non-boolean (Nothing) used in boolean context
+EXEC  strings_io_dates.jsonl:24 block failed: MethodError: no method matching length(::Base.RegexMatchIterator{String}) The function `length` exists, but no method is defined for this combination of argumen
+EXEC  strings_io_dates.jsonl:38 block failed: EOFError: read end of file
+EXEC  strings_io_dates.jsonl:39 block failed: ArgumentError: cannot reinterpret an `UInt8` array to `UInt32` whose first dimension has size `3`. The resulting array would have a non-integral first dimension
+EXEC  strings_io_dates.jsonl:43 block failed: type `Nothing` is not a valid TOML type, pass a conversion function to `TOML.print`
+EXEC  strings_io_dates.jsonl:50 block failed: ArgumentError: Found extra characters at the end of date time string
+EXEC  strings_io_dates.jsonl:56 block failed: MethodError: no method matching isless(::Dates.Day, ::Int64) The function `isless` exists, but no method is defined for this combination of argument types.  Clo
+EXEC  strings_io_dates.jsonl:58 block failed: ArgumentError: Hour: 25 out of range (0:23)
+EXEC  strings_io_dates.jsonl:80 block failed: BoundsError: attempt to access 1-element Vector{SubString{String}} at index [2]
+EXEC  strings_io_dates.jsonl:88 block failed: MethodError: no method matching +(::String, ::String) The function `+` exists, but no method is defined for this combination of argument types. String concatena
+EXEC  strings_io_dates.jsonl:91 block failed: KeyError: key "SOME_UNSET_VARIABLE" not found
+EXEC  strings_io_dates.jsonl:95 block failed: ArgumentError: cannot parse "1,5" as Float64
+EXEC  strings_io_dates.jsonl:98 block failed: ArgumentError: path escapes /srv/data: ../etc/x

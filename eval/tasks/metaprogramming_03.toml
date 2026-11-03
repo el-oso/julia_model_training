@@ -1,0 +1,36 @@
+id = "metaprogramming_03"
+area = "metaprogramming"
+deps = []
+prompt = '''
+Write `unrolled_sum(t::NTuple{N,Int})` as a `@generated` function that generates the straight-line expression `t[1] + t[2] + ... + t[N]` (no loop in the generated code) and returns `0` for the empty tuple. It must not allocate.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test unrolled_sum((1, 2, 3)) == 6
+@test unrolled_sum((5,)) == 5
+@test unrolled_sum(()) == 0
+@test alloc_of(unrolled_sum, (1, 2, 3, 4)) == 0
+@test occursin("@generated", SOLUTION_SOURCE)
+ci = only(code_lowered(unrolled_sum, (NTuple{4,Int},)))
+@test !any(s -> s isa Core.GotoIfNot || s isa Core.GotoNode, ci.code)
+'''
+reference = '''
+@generated function unrolled_sum(t::NTuple{N,Int}) where {N}
+    N == 0 && return :(0)
+    ex = :(t[1])
+    for i in 2:N
+        ex = :($ex + t[$i])
+    end
+    return ex
+end
+'''
+negative = '''
+function unrolled_sum(t::NTuple{N,Int}) where {N}
+    s = 0
+    for x in t
+        s += x
+    end
+    return s
+end
+'''

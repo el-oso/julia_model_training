@@ -1,0 +1,44 @@
+id = "metaprogramming_02"
+area = "metaprogramming"
+deps = []
+prompt = '''
+Write a macro `@timed_value expr` that evaluates `expr` exactly once and returns the tuple `(value, elapsed_ns)`, where `elapsed_ns` is an `Integer` number of nanoseconds. It must see the caller's local variables.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+count = Ref(0)
+f() = (count[] += 1; 42)
+r = @timed_value f()
+@test r[1] == 42
+@test count[] == 1
+@test r[2] isa Integer && r[2] >= 0
+function g(x)
+    return @timed_value x^2 + 1
+end
+@test g(3)[1] == 10
+r2 = @timed_value begin
+    sleep(0.02)
+    :ok
+end
+@test r2[1] === :ok && r2[2] >= 10_000_000
+'''
+reference = '''
+macro timed_value(ex)
+    quote
+        local t0 = time_ns()
+        local v = $(esc(ex))
+        (v, Int(time_ns() - t0))
+    end
+end
+'''
+negative = '''
+macro timed_value(ex)
+    quote
+        local v = $(esc(ex))
+        local t0 = time_ns()
+        $(esc(ex))
+        (v, Int(time_ns() - t0))
+    end
+end
+'''

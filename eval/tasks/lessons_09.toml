@@ -1,0 +1,45 @@
+id = "lessons_09"
+area = "lessons"
+deps = []
+prompt = '''
+Define `struct Span{T<:Real}` with fields `lo` and `hi`. Constructing one with `lo > hi` must throw an `ArgumentError`, whichever way it is constructed (`Span(1, 2)`, `Span{Float64}(1, 2)` and `Span{Int}(3, 1)` all go through the same check). `Span{Float64}(1, 2)` must convert the integer arguments. Define `-(a::Span, b::Span)` as the set of differences `x - y` for `x` in `a`, `y` in `b`, returned as a `Span`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test Span(1, 3) - Span(0, 1) == Span(0, 3)
+@test Span(0.5, 1.0) - Span(0.0, 2.0) == Span(-1.5, 1.0)
+s = Span{Float64}(1, 2)
+@test s isa Span{Float64} && s.lo === 1.0 && s.hi === 2.0
+@test_throws ArgumentError Span(3, 1)
+@test_throws ArgumentError Span{Float64}(3, 1)
+@test_throws ArgumentError Span{Int}(3, 1)
+'''
+reference = '''
+struct Span{T<:Real}
+    lo::T
+    hi::T
+    function Span{T}(lo, hi) where {T<:Real}
+        lo <= hi || throw(ArgumentError("lo = $lo must not exceed hi = $hi"))
+        return new{T}(lo, hi)
+    end
+end
+Span(lo, hi) = Span{promote_type(typeof(lo), typeof(hi))}(lo, hi)
+
+Base.:(==)(a::Span, b::Span) = a.lo == b.lo && a.hi == b.hi
+Base.:-(a::Span, b::Span) = Span(a.lo - b.hi, a.hi - b.lo)
+'''
+negative = '''
+struct Span{T<:Real}
+    lo::T
+    hi::T
+end
+function Span(lo, hi)
+    lo <= hi || throw(ArgumentError("lo must not exceed hi"))
+    T = promote_type(typeof(lo), typeof(hi))
+    return Span{T}(lo, hi)
+end
+
+Base.:(==)(a::Span, b::Span) = a.lo == b.lo && a.hi == b.hi
+Base.:-(a::Span, b::Span) = Span(a.lo - b.lo, a.hi - b.hi)
+'''

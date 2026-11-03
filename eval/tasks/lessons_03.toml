@@ -1,0 +1,19 @@
+id = "lessons_03"
+area = "lessons"
+deps = []
+prompt = '''
+Write `describe(xs, i)` returning a `String` of the form `xs[2] = 20` for `xs = [10, 20, 30]` and `i = 2`: the literal text `xs[`, the index, the literal text `] = `, then the element `xs[i]`. Build it with string interpolation.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test describe([10, 20, 30], 2) == "xs[2] = 20"
+@test describe(["a", "b"], 1) == "xs[1] = a"
+@test describe(1.5:1.0:4.5, 3) == "xs[3] = 3.5"
+'''
+reference = '''
+describe(xs, i) = "xs[$i] = $(xs[i])"
+'''
+negative = '''
+describe(xs, i) = "xs[$i] = $xs[$i]"
+'''

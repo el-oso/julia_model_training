@@ -1,0 +1,26 @@
+id = "parallel_02"
+area = "parallel"
+deps = []
+prompt = '''
+Write `pmap_tasks(f, xs)` that applies `f` to every element of `xs` concurrently, one task per element (using `Threads.@spawn` or `@async`), and returns the results as a `Vector` in the order of `xs`, regardless of which task finishes first. It must wait for all tasks, and if `f` throws for some element the error must propagate to the caller as a `TaskFailedException` rather than being lost.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test pmap_tasks(x -> x^2, 1:5) == [1, 4, 9, 16, 25]
+r = pmap_tasks(i -> (sleep(0.04 * (5 - i)); i), 1:4)
+@test r == [1, 2, 3, 4]
+@test_throws TaskFailedException pmap_tasks(x -> x == 3 ? error("boom") : x, 1:5)
+@test isempty(pmap_tasks(identity, Int[]))
+t = @elapsed pmap_tasks(i -> sleep(0.1), 1:4)
+@test t < 0.3
+'''
+reference = '''
+function pmap_tasks(f, xs)
+    tasks = [Threads.@spawn f(x) for x in xs]
+    return map(fetch, tasks)
+end
+'''
+negative = '''
+pmap_tasks(f, xs) = map(f, xs)
+'''

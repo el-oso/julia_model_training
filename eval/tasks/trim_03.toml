@@ -1,0 +1,37 @@
+id = "trim_03"
+area = "trim"
+deps = []
+prompt = '''
+`apply_op` looks up a function by name at run time, which `juliac --trim=safe` cannot compile. Rewrite it with explicit branches for `:sin`, `:cos` and `:exp` (no `getfield`, `eval`, or function tables). Unknown names must throw `ArgumentError`. The return type must be inferred as `Float64` with no dynamic dispatch.
+
+```julia
+function apply_op(name::Symbol, x::Float64)
+    f = getfield(@__MODULE__, name)
+    return f(x)
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test apply_op(:sin, 0.0) == 0.0
+@test apply_op(:cos, 0.0) == 1.0
+@test apply_op(:exp, 1.0) ≈ ℯ
+@test_throws ArgumentError apply_op(:foo, 1.0)
+@test rtype(apply_op, (Symbol, Float64)) === Float64
+@test isempty(dynamic_calls(apply_op, (Symbol, Float64)))
+'''
+reference = '''
+function apply_op(name::Symbol, x::Float64)
+    name === :sin && return sin(x)
+    name === :cos && return cos(x)
+    name === :exp && return exp(x)
+    throw(ArgumentError("unknown operation $name"))
+end
+'''
+negative = '''
+function apply_op(name::Symbol, x::Float64)
+    f = getfield(@__MODULE__, name)
+    return f(x)
+end
+'''

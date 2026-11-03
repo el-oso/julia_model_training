@@ -1,0 +1,51 @@
+id = "metaprogramming_07"
+area = "metaprogramming"
+deps = []
+prompt = '''
+Write a macro `@repeat n body` that runs `body` `n` times (in the caller's scope) and returns `nothing`. `n` must be evaluated exactly once, and the macro must not interfere with a caller variable named `i` or `k`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+calls = Ref(0)
+nn() = (calls[] += 1; 3)
+c = Ref(0)
+@repeat nn() (c[] += 1)
+@test c[] == 3
+@test calls[] == 1
+function f()
+    s = 0
+    @repeat 4 (s += 2)
+    return s
+end
+@test f() == 8
+function g()
+    i = 100; k = 0
+    @repeat 3 (k += i)
+    return (i, k)
+end
+@test g() == (100, 300)
+@test (@repeat 2 nothing) === nothing
+'''
+reference = '''
+macro repeat(n, body)
+    quote
+        for _ in 1:$(esc(n))
+            $(esc(body))
+        end
+        nothing
+    end
+end
+'''
+negative = '''
+macro repeat(n, body)
+    esc(quote
+        i = 0
+        while i < $n
+            $body
+            i += 1
+        end
+        nothing
+    end)
+end
+'''

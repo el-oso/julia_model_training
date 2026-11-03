@@ -1,0 +1,41 @@
+id = "memory_03"
+area = "memory"
+deps = []
+prompt = '''
+`as_floats` copies the bytes into a new `Vector{Float32}`. Rewrite it so it returns a `Float32` array that shares memory with `bytes` (no copy, so later writes to `bytes` are visible through it) with `length(bytes) ÷ 4` elements, without allocating a buffer proportional to the input.
+
+```julia
+function as_floats(bytes::Vector{UInt8})
+    out = Float32[]
+    for i in 1:4:length(bytes)-3
+        push!(out, reinterpret(Float32, bytes[i:i+3])[1])
+    end
+    return out
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+b = zeros(UInt8, 4000)
+f = as_floats(b)
+@test length(f) == 1000
+@test eltype(f) === Float32
+b[1:4] .= reinterpret(UInt8, [1.5f0])
+@test f[1] === 1.5f0
+f[2] = 2.5f0
+@test reinterpret(Float32, b[5:8])[1] === 2.5f0
+@test alloc_of(as_floats, b) < 500
+'''
+reference = '''
+as_floats(bytes::Vector{UInt8}) = reinterpret(Float32, bytes)
+'''
+negative = '''
+function as_floats(bytes::Vector{UInt8})
+    out = Float32[]
+    for i in 1:4:length(bytes)-3
+        push!(out, reinterpret(Float32, bytes[i:i+3])[1])
+    end
+    return out
+end
+'''

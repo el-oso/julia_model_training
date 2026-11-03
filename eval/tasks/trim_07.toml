@@ -1,0 +1,24 @@
+id = "trim_07"
+area = "trim"
+deps = []
+prompt = '''
+`sumall` splats a vector into `+`. Splatting a run-time-length collection is a dynamic call (`Core._apply_iterate`), which `juliac --trim=safe` cannot handle. Rewrite it without splatting; `sumall(Float64[])` must return `0.0` (a `Float64`, not the `Int` that `+()` gives).
+
+```julia
+sumall(v::Vector{Float64}) = +(v...)
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test sumall([1.0, 2.0, 3.0]) == 6.0
+@test sumall(Float64[]) === 0.0
+@test rtype(sumall, (Vector{Float64},)) === Float64
+@test isempty(dynamic_calls(sumall, (Vector{Float64},)))
+'''
+reference = '''
+sumall(v::Vector{Float64}) = sum(v)
+'''
+negative = '''
+sumall(v::Vector{Float64}) = +(v...)
+'''

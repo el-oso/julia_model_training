@@ -1,0 +1,37 @@
+id = "dispatch_types_05"
+area = "dispatch_types"
+deps = []
+prompt = '''
+Define `Interval{T<:Real}` with fields `lo` and `hi`. Every construction path must enforce `lo <= hi` by throwing `ArgumentError("lo must not exceed hi")`, including the explicit `Interval{Float64}(2, 1)` form. `Interval(1, 2)` gives `Interval{Int}` and `Interval(1, 2.5)` promotes to `Interval{Float64}`. `lo == hi` is allowed.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test Interval(1, 2) isa Interval{Int}
+@test Interval(1, 2.5) isa Interval{Float64}
+@test Interval{Float64}(1, 2) isa Interval{Float64}
+@test Interval(2, 2).lo == 2
+@test_throws "lo must not exceed hi" Interval(3, 1)
+@test_throws "lo must not exceed hi" Interval{Float64}(3, 1)
+@test_throws "lo must not exceed hi" Interval(2.0, 1)
+@test_throws ArgumentError Interval(5, 4)
+'''
+reference = '''
+struct Interval{T<:Real}
+    lo::T
+    hi::T
+    function Interval{T}(lo, hi) where {T<:Real}
+        lo > hi && throw(ArgumentError("lo must not exceed hi"))
+        return new{T}(lo, hi)
+    end
+end
+Interval(lo, hi) = Interval(promote(lo, hi)...)
+Interval(lo::T, hi::T) where {T<:Real} = Interval{T}(lo, hi)
+'''
+negative = '''
+struct Interval{T<:Real}
+    lo::T
+    hi::T
+end
+Interval(lo, hi) = Interval(promote(lo, hi)...)
+'''

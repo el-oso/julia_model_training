@@ -1,0 +1,49 @@
+id = "performance_02"
+area = "performance"
+deps = []
+prompt = '''
+`scaled_total` allocates on every iteration of its loop. Fix it without changing its signature `scaled_total(x)`, so that a call on a `Vector{Float64}` performs zero allocations and has a concrete inferred return type.
+
+```julia
+FACTOR = 2.0
+
+function scaled_total(x)
+    s = 0.0
+    for xi in x
+        s += FACTOR * xi
+    end
+    return s
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+x = collect(1.0:1000.0)
+@test scaled_total(ones(3)) == 6.0
+@test scaled_total(x) == 2 * sum(x)
+@test is_stable(scaled_total, (Vector{Float64},))
+@test alloc_of(scaled_total, x) == 0
+'''
+reference = '''
+const FACTOR = 2.0
+
+function scaled_total(x)
+    s = 0.0
+    for xi in x
+        s += FACTOR * xi
+    end
+    return s
+end
+'''
+negative = '''
+FACTOR = 2.0
+
+function scaled_total(x)
+    s = 0.0
+    for xi in x
+        s += FACTOR * xi
+    end
+    return s
+end
+'''

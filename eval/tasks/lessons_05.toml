@@ -1,0 +1,39 @@
+id = "lessons_05"
+area = "lessons"
+deps = []
+prompt = '''
+Write `sqdists(X::AbstractMatrix)` returning the symmetric matrix of squared Euclidean distances between the columns of `X`. It must stay accurate when all columns share a large common offset (for example coordinates near 1e8 that differ by about 1), and the diagonal must be exactly zero.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+X = 1e8 .+ [0.0 1.0 2.5 0.3; 0.0 0.5 1.0 2.0; 0.0 0.1 0.2 0.3]
+D = sqdists(X)
+E = [sum(abs2, X[:, i] .- X[:, j]) for i in 1:4, j in 1:4]
+@test size(D) == (4, 4)
+@test all(D[i, i] == 0 for i in 1:4)
+@test isapprox(D, E; atol = 1e-6)
+@test D == D'
+'''
+reference = '''
+function sqdists(X::AbstractMatrix)
+    n = size(X, 2)
+    D = zeros(float(eltype(X)), n, n)
+    for j in 1:n, i in 1:j-1
+        s = zero(eltype(D))
+        for k in axes(X, 1)
+            s += abs2(X[k, i] - X[k, j])
+        end
+        D[i, j] = D[j, i] = s
+    end
+    return D
+end
+'''
+negative = '''
+using LinearAlgebra
+function sqdists(X::AbstractMatrix)
+    g = X' * X
+    d = diag(g)
+    return max.(d .+ d' .- 2 .* g, 0)
+end
+'''

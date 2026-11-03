@@ -1,0 +1,33 @@
+id = "memory_01"
+area = "memory"
+deps = []
+prompt = '''
+`unit` allocates a new vector on every call, and it is called in a hot loop. Write `unit!(v)` that normalizes `v` to unit 2-norm in place, returns the same array, performs zero allocations, and keeps the element type (`Float32` stays `Float32`).
+
+```julia
+unit(v) = v ./ sqrt(sum(abs2, v))
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+v = rand(1000)
+w = copy(v)
+@test unit!(v) === v
+@test v ≈ w ./ sqrt(sum(abs2, w))
+@test sqrt(sum(abs2, v)) ≈ 1
+f = Float32[3, 4]
+unit!(f)
+@test f isa Vector{Float32} && f ≈ Float32[0.6, 0.8]
+@test alloc_of(unit!, v) == 0
+'''
+reference = '''
+function unit!(v)
+    v ./= sqrt(sum(abs2, v))
+    return v
+end
+'''
+negative = '''
+unit(v) = v ./ sqrt(sum(abs2, v))
+unit!(v) = (v .= unit(v); v)
+'''

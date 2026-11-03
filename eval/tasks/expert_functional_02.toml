@@ -1,0 +1,21 @@
+id = "expert_functional_02"
+area = "expert_functional"
+deps = []
+prompt = '''
+Write `pipeline(fs...)` that returns a function applying `fs` left to right (`pipeline(f, g, h)(x) == h(g(f(x)))`). The returned callable must be type-inferable: `@inferred pipeline(sqrt, log, exp)(4.0)` must pass, so do not collect the functions into a `Vector`.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test pipeline(x -> x + 1, x -> 2x)(3) == 8
+@test pipeline(sqrt)(9.0) == 3.0
+@test pipeline(sqrt, log, exp)(4.0) ≈ 2.0
+@test (@inferred pipeline(sqrt, log, exp)(4.0)) ≈ 2.0
+@test (@inferred pipeline(x -> x + 1, x -> 2x, string)(3)) == "8"
+'''
+reference = '''
+pipeline(fs...) = reduce(∘, reverse(fs))
+'''
+negative = '''
+pipeline(fs...) = x -> foldl((a, f) -> f(a), collect(fs); init = x)
+'''

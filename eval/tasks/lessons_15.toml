@@ -1,0 +1,31 @@
+id = "lessons_15"
+area = "lessons"
+deps = []
+prompt = '''
+Write `parse_port(s::AbstractString)::Int` that parses a TCP port number. The text must be a decimal integer from 1 to 65535. For any other input (not an integer, or out of range) throw an `ArgumentError` whose message contains the offending text.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test parse_port("8080") === 8080
+@test parse_port("65535") === 65535
+@test_throws ArgumentError parse_port("0")
+@test_throws "70000" parse_port("70000")
+@test_throws "http" parse_port("http")
+@test_throws ArgumentError parse_port("")
+'''
+reference = '''
+function parse_port(s::AbstractString)::Int
+    n = tryparse(Int, s)
+    (n === nothing || !(1 <= n <= 65535)) &&
+        throw(ArgumentError("invalid port \"$s\": expected an integer from 1 to 65535"))
+    return n
+end
+'''
+negative = '''
+function parse_port(s::AbstractString)::Int
+    n = parse(Int, s)
+    @assert 1 <= n <= 65535 "port out of range"
+    return n
+end
+'''

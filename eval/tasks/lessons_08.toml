@@ -1,0 +1,100 @@
+id = "lessons_08"
+area = "lessons"
+deps = []
+prompt = '''
+Write a tiny persistent store: `Store(path)` opens (creating if absent, replaying if present) an append-only log file; `setkey!(s, k::String, v::String)`, `delkey!(s, k)` and `getkey(s, k, default)` work on it. Every change must be appended to the file immediately so that a new `Store(path)` on the same file sees it. Keys and values are arbitrary Unicode strings; a value may be the empty string, which is different from a deleted key.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+path = tempname()
+s = Store(path)
+setkey!(s, "ñ", "日本€")
+setkey!(s, "empty", "")
+setkey!(s, "gone", "x")
+delkey!(s, "gone")
+setkey!(s, "ñ", "é")
+@test getkey(s, "ñ", nothing) == "é"
+@test getkey(s, "empty", nothing) == ""
+@test getkey(s, "gone", nothing) === nothing
+s2 = Store(path)
+@test getkey(s2, "ñ", nothing) == "é"
+@test getkey(s2, "empty", nothing) == ""
+@test getkey(s2, "gone", nothing) === nothing
+setkey!(s2, "k2", "v2")
+s3 = Store(path)
+@test getkey(s3, "k2", nothing) == "v2"
+@test getkey(s3, "ñ", nothing) == "é"
+rm(path)
+'''
+reference = '''
+mutable struct Store
+    path::String
+    d::Dict{String,String}
+end
+
+function Store(path::AbstractString)
+    d = Dict{String,String}()
+    if isfile(path)
+        open(path) do io
+            while !eof(io)
+                op = read(io, UInt8)
+                k = String(read(io, read(io, UInt32)))
+                if op == 0x01
+                    d[k] = String(read(io, read(io, UInt32)))
+                else
+                    delete!(d, k)
+                end
+            end
+        end
+    end
+    return Store(String(path), d)
+end
+
+function setkey!(s::Store, k::String, v::String)
+    open(s.path, "a") do io
+        write(io, 0x01, UInt32(sizeof(k)), k, UInt32(sizeof(v)), v)
+    end
+    s.d[k] = v
+    return s
+end
+
+function delkey!(s::Store, k::String)
+    open(s.path, "a") do io
+        write(io, 0x00, UInt32(sizeof(k)), k)
+    end
+    delete!(s.d, k)
+    return s
+end
+
+getkey(s::Store, k::String, default) = get(s.d, k, default)
+'''
+negative = '''
+mutable struct Store
+    path::String
+    d::Dict{String,String}
+end
+
+function Store(path::AbstractString)
+    d = Dict{String,String}()
+    if isfile(path)
+        for line in eachline(path)
+            k, v = split(line, '\t'; limit = 2)
+            isempty(v) ? delete!(d, k) : (d[k] = v)
+        end
+    end
+    return Store(String(path), d)
+end
+
+function setkey!(s::Store, k::String, v::String)
+    open(s.path, "a") do io
+        println(io, k, '\t', v)
+    end
+    s.d[k] = v
+    return s
+end
+
+delkey!(s::Store, k::String) = (setkey!(s, k, ""); delete!(s.d, k); s)
+
+getkey(s::Store, k::String, default) = get(s.d, k, default)
+'''

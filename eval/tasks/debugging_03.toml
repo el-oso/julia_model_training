@@ -1,0 +1,42 @@
+id = "debugging_03"
+area = "debugging"
+deps = ["OffsetArrays"]
+prompt = '''
+`adjacent_diffs` throws a `BoundsError` for `OffsetVector` inputs because it assumes 1-based indexing. Make it correct for any `AbstractVector` (ranges, views, offset arrays): the result is a plain 1-based `Vector` of length `length(A) - 1` whose `k`-th entry is the difference between the `(k+1)`-th and `k`-th elements of `A`.
+
+```julia
+function adjacent_diffs(A::AbstractVector)
+    out = similar(A, length(A) - 1)
+    for i in 1:length(A)-1
+        out[i] = A[i+1] - A[i]
+    end
+    return out
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test adjacent_diffs([1, 4, 9, 16]) == [3, 5, 7]
+@test adjacent_diffs(1:5) == [1, 1, 1, 1]
+@test adjacent_diffs(view([1, 4, 9, 16, 25], 2:4)) == [5, 7]
+O = OffsetArray([1, 4, 9], -1:1)
+@test adjacent_diffs(O) == [3, 5]
+@test adjacent_diffs(OffsetArray([1.0, 3.0], 5:6)) == [2.0]
+@test adjacent_diffs(Int[1]) == Int[]
+@test axes(adjacent_diffs(O)) == (Base.OneTo(2),)
+'''
+reference = '''
+function adjacent_diffs(A::AbstractVector)
+    return [A[i+1] - A[i] for i in firstindex(A):lastindex(A)-1]
+end
+'''
+negative = '''
+function adjacent_diffs(A::AbstractVector)
+    out = similar(A, length(A) - 1)
+    for i in 1:length(A)-1
+        out[i] = A[i+1] - A[i]
+    end
+    return out
+end
+'''

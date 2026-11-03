@@ -1,0 +1,39 @@
+id = "lessons_07"
+area = "lessons"
+deps = []
+prompt = '''
+Write a macro `@traced` that is applied to a method definition, as in `@traced sq(x) = x^2` or `@traced function g(x) ... end`. It defines the method as usual and also pushes the function's name (a `Symbol`) onto a global `const traced_names = Symbol[]` that your code defines.
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@traced sq(x) = x^2
+@traced function g(x)
+    return x + 1
+end
+@test sq(3) == 9
+@test g(1) == 2
+@test traced_names == [:sq, :g]
+'''
+reference = '''
+const traced_names = Symbol[]
+
+macro traced(ex)
+    name = ex.args[1].args[1]
+    return quote
+        push!(traced_names, $(QuoteNode(name)))
+        $(esc(ex))
+    end
+end
+'''
+negative = '''
+const traced_names = Symbol[]
+
+macro traced(line::LineNumberNode, mod::Module, ex)
+    name = ex.args[1].args[1]
+    return quote
+        push!(traced_names, $(QuoteNode(name)))
+        $(esc(ex))
+    end
+end
+'''

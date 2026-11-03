@@ -1,0 +1,60 @@
+id = "dispatch_types_06"
+area = "dispatch_types"
+deps = []
+prompt = '''
+Replace this `isa` chain with multiple dispatch: one method of `describe` per case, so that users can add methods for their own types without editing this function. Results must stay the same (`"integer"`, `"float"`, `"string"`, `"symbol"`, otherwise `"other"`), and calls must infer to `String`.
+
+```julia
+function describe(x)
+    if x isa Integer
+        "integer"
+    elseif x isa AbstractFloat
+        "float"
+    elseif x isa AbstractString
+        "string"
+    elseif x isa Symbol
+        "symbol"
+    else
+        "other"
+    end
+end
+```
+
+Reply with a single ```julia code block containing the complete code.
+'''
+check = '''
+@test describe(1) == "integer"
+@test describe(UInt8(1)) == "integer"
+@test describe(1.5f0) == "float"
+@test describe("x") == "string"
+@test describe(SubString("abc", 1, 2)) == "string"
+@test describe(:a) == "symbol"
+@test describe([1]) == "other"
+@test length(methods(describe)) >= 5
+@test rtype(describe, (Int,)) === String
+struct Foo end
+describe(::Foo) = "foo"
+@test describe(Foo()) == "foo"
+'''
+reference = '''
+describe(::Integer) = "integer"
+describe(::AbstractFloat) = "float"
+describe(::AbstractString) = "string"
+describe(::Symbol) = "symbol"
+describe(::Any) = "other"
+'''
+negative = '''
+function describe(x)
+    if x isa Integer
+        "integer"
+    elseif x isa AbstractFloat
+        "float"
+    elseif x isa AbstractString
+        "string"
+    elseif x isa Symbol
+        "symbol"
+    else
+        "other"
+    end
+end
+'''
